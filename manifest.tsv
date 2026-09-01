@@ -1,0 +1,75 @@
+# ACTION	DEST	FILENAME	TITLE
+# actions: machine challenge ctf note skip drop
+machine	easy	2025-11-02_Trick-HTB-Machine-Walkthrough-1587e9c79bc1.html	Trick HTB Machine Walkthrough	trick
+machine	easy	2025-11-05_Fluffy-HTB-Machine-Walk-Through--6963fc9abde2.html	Fluffy HTB Machine Walk-Through.	fluffy
+machine	easy	2025-11-07_Postman-HTB-Machine-Walk-Through--cbed305a5178.html	Postman HTB Machine Walk-Through!	postman
+machine	easy	2025-11-17_Data-HTB-Machine-Walk-Through-9ab185032975.html	Data HTB Machine Walk-Through	data
+skip		2025-11-19_-Building-Houses-to-Breaking-Systems--My-Huntress-CTF-2025-Results---Ethical-Hacking-Journey---607a12eb00d4.html	“Building Houses to Breaking Systems: My Huntress CTF 2025 Results & Ethical Hacking Journey!”
+drop		2025-11-24_Hey-really-good-article-anyway-you-can-dm-me-and-explain-how-to-setup-the-workflow-for-caido---407d51512cf5.html	Hey really good article anyway you can dm me and explain how to setup the workflow for caido??
+machine	easy	2025-11-28_Outbound-HTB-Machine-Walk-Through--227924e660b8.html	Outbound HTB Machine Walk-Through!	outbound
+machine	easy	2025-11-29_Cap-HTB-Machine-Walk-Through--e6187005bf9d.html	Cap HTB Machine Walk-Through!	cap
+skip		2025-11-30_Code-is-Fine--Architecture-is-Not--What-the-OWASP-Top-10-2025-RC-Tells-Us-About-the-Next-Generation--87756efa3547.html	Code is Fine, Architecture is Not: What the OWASP Top 10:2025 RC Tells Us About the Next Generation…
+ctf	heroctf	2025-12-01_Git-Hook-Privilege-Escalation---Hero-CTF-Write-Up-b40300dc0e4a.html	Git Hook Privilege Escalation — Hero-CTF Write‑Up	git-hook-privesc
+skip		2025-12-02_Beyond-the-Firewall------Engineering-a-WAF-Aware-Detection-Pipeline-for-the-OWASP-Top-10-ed7d5c08baca.html	Beyond the Firewall:🔥🧱 Engineering a WAF-Aware Detection Pipeline for the OWASP Top 10
+skip		2025-12-04_Zero-In-on-Targets--Automating-the-Modern-Attack-Surface------with-ZeroRecon-b373e5b45867.html	Zero In on Targets: Automating the Modern Attack Surface 💀🔭 with ZeroRecon
+skip		2025-12-05_Grief--Failure--and-a-Second-Chance--My-Journey-to-the-CNSP-a56fa340b45d.html	Grief, Failure, and a Second Chance: My Journey to the CNSP
+skip		2025-12-07_Breaking-the-Perimeter--How-My-Custom-Python-Tool-Bypassed-a-Federal-Firewall-86b2db874812.html	Breaking the Perimeter: How My Custom Python Tool Bypassed a Federal Firewall
+skip		2025-12-08_---Ghost-in-the-WAF--Building--WAF-Whisper----An-Adaptive-Evasion-Engine-54366af7e99a.html	👻 Ghost in the WAF: Building “WAF-Whisper” — An Adaptive Evasion Engine
+machine	easy	2025-12-13_Paper-HTB-Machine-Walk-Through--8edec7583475.html	Paper HTB Machine Walk-Through!	paper
+machine	easy	2025-12-15_Precious-HTB-Machine-Walk-Though--a64d23ab1640.html	Precious HTB Machine Walk-Though!	precious
+skip		2025-12-15_The-Paradox-of-the-3-4-Million--Why-You-Can-t-Find-a-Job-in-a--Desperate--Industry-90406e4854bb.html	The Paradox of the 3.4 Million: Why You Can’t Find a Job in a “Desperate” Industry
+machine	easy	2025-12-25_--Zero-to-Root--The-Ultimate-Guide-to-Hack-The-Box-Driver----d7f5da295946.html	⚡ Zero to Root: The Ultimate Guide to Hack The Box Driver 🏆	driver
+machine	medium	2025-12-25_Exposed-Pipelines----Rooting-HTB-Builder-via-CVE-2024-23897-18b185b3d080.html	Exposed Pipelines:📈 Rooting HTB Builder via CVE-2024-23897	builder
+machine	easy	2025-12-26_Return-to-Sender--Auditing-Printer-Vulnerabilities-in-Active-Directory-5a93160be99d.html	Return to Sender: Auditing Printer Vulnerabilities in Active Directory	return
+machine	easy	2025-12-27_---From-Login-Form-to-Root-Access--Chaining-SQLi---SSTI-for-Total-Compromise-11c77f0d3539.html	🚀 From Login Form to Root Access: Chaining SQLi & SSTI for Total Compromise	goodgames
+drop		2025-12-29_You-re-asking-me-how-to-build-and-develop-a-hacking-site--62765d1e5c18.html	You're asking me how to build and develop a hacking site?	
+machine	easy	2025-12-31_-------Hacking-Bashed--The-Deadly-Cost-of--Shadow-IT--Exposed----dc0ecda2c4ba.html	🕵️‍♂️ Hacking Bashed: The Deadly Cost of &quot;Shadow IT&quot; Exposed 💀	bashed
+machine	easy	2026-01-01_---Shocker--From-403-Forbidden-to-Root-in-Under-10-Mins----1b53c202699f.html	💥 Shocker: From 403 Forbidden to Root in Under 10 Mins! ⚡	shocker
+machine	easy	2026-01-02_---The-Breach-in-the-Wall--Exploiting-MS17-010-on-HTB-Blue----259c9cb66da0.html	⚔️ The Breach in the Wall: Exploiting MS17–010 on HTB Blue 🧱	blue
+drop		2026-01-02_Hello-OSINT-Team--fa546145f9b7.html	Hello OSINT Team,
+drop		2026-01-02_Thank-you-very-much-ghostyjoe--with-persistence-you-will-be-there-too--i-will-say-this-last-year-i--80143f4ad0c1.html	Thank you very much ghostyjoe, with persistence you will be there too, i will say this last year i…	
+skip		2026-01-03_Hacking-NASA----How-I-Disclosed-a-Data-Exposure-Vulnerability-to-the-U-S--Government----a37217e7e937.html	Hacking NASA:🌎 How I Disclosed a Data Exposure Vulnerability to the U.S. Government🛰️
+drop		2026-01-03_Hey-i-don-t-have-a-whatsapp---82ab6a05599e.html	Hey i don't have a whatsapp..
+drop		2026-01-04_Excellent-read--very-well-documented-and-explained-perfectly--Keep-up-the-great-work--d7da1fb056cb.html	Excellent read! very well documented and explained perfectly! Keep up the great work!
+drop		2026-01-04_Hey-Got-Root---f3329780c515.html	Hey Got Root?,
+drop		2026-01-04_So-i-need-to-be-very-clear-here-and-im-sure-you-arent-just-asking-for-illegal-site----72de66d14b80.html	So i need to be very clear here and im sure you arent just asking for illegal site...
+machine	easy	2026-01-05_---Legacy--Smashing-Windows-XP-with-MS08-067---Instant-Root----5f12678846bd.html	📜 Legacy: Smashing Windows XP with MS08-067 & Instant Root 💥	legacy
+machine	easy	2026-01-05_---Nibbles--Web-Enumeration---File-Upload-Exploitation-9b69ed1b579b.html	📜 Nibbles: Web Enumeration & File Upload Exploitation	nibbles
+drop		2026-01-05_Snooptsz--Thank-you-very-much-Sir--for-the-add--Much-appreciated--ab67c1d4daa4.html	Snooptsz, Thank you very much Sir, for the add! Much appreciated!
+machine	easy	2026-01-09_---Knife--The-Invisible-Wound-in-the-Supply-Chain-5a2df1d3683d.html	🔪 Knife: The Invisible Wound in the Supply Chain	knife
+machine	medium	2026-01-12_----PROTOCOL-BREACH--Engineering-Total-Domain-Compromise-on-HTB-Escape-350ecacf457c.html	🏗️ PROTOCOL BREACH: Engineering Total Domain Compromise on HTB Escape	escape
+machine	easy	2026-01-12_---Devel--Anonymous-FTP-to-Kernel-Exploitation-388c1468dfd3.html	☢️ Devel: Anonymous FTP to Kernel Exploitation	devel
+skip		2026-01-14_---Broken-Gates--Why-OWASP--1--Access-Control--Is-the-Hottest-Ticket-in-Bug-Bounty-86df2210d3c0.html	🔓 Broken Gates: Why OWASP #1 (Access Control) Is the Hottest Ticket in Bug Bounty
+ctf	uoftctf	2026-01-15_Hacking-Time-Itself--UofTCTF-2026--Guess-the-Number--Writeup-7ccd4651e72d.html	Hacking Time Itself: UofTCTF 2026 “Guess the Number” Writeup	guess-the-number
+drop		2026-01-16_If-you-found-this-insight-valuable--make-sure-to-subscribe-and-follow-for-Part-2--6c4acb7ef47b.html	If you found this insight valuable, make sure to subscribe and follow for Part 2.
+skip		2026-01-17_----The-Skeleton-Key-in-Your-Pocket--Mastering-the-iCopy-XS--Part-1-of-5-----e7a32af5a8d1.html	🗝️ The Skeleton Key in Your Pocket: Mastering the iCopy-XS (Part 1 of 5) 💾
+drop		2026-01-17_Thank-you-very-much---1a7f4653a0ea.html	Thank you very much!!
+machine	easy	2026-01-19_---Hacking-Windows-Server--Why-Your-File-Server-is-a-Backdoor----df3e0e634e98.html	🧠 Hacking Windows Server: Why Your File Server is a Backdoor 🔓	optimum
+drop		2026-01-19_Thank-you-very-much--for-the-support-and-the-read--f40c8f26d87b.html	Thank you very much, for the support and the read!
+drop		2026-01-20_If-you-meant-Free-Link---I-just-put-it-there---55916c0bea5b.html	If you meant Free Link.. I just put it there..
+machine	easy	2026-01-21_----Nothing-Hidden--Exposing-Netmon-s-Deadly-Secrets----1948b32bc426.html	👁️ Nothing Hidden: Exposing Netmon’s Deadly Secrets 🔓	netmon
+ctf	vulnhub-dc	2026-01-24_--Unearthing-the-Truth-in-DC-2---Breaking-Barriers---Restricted-Shells-----71e3969cc096.html	🎯Unearthing the Truth in DC-2 | Breaking Barriers & Restricted Shells 🛡️	dc-2
+drop		2026-01-24_Thank-you-for-that--that-was-actually-very-informative--abc09fa031a5.html	Thank you for that! that was actually very informative!
+ctf	hacksmarter	2026-01-25_---BEYOND-THE-PERIMETER--Cracking-Sysco-with-Kerberos-Exploitation---GPO-Task-Injection-------4530db99feea.html	⚔️ BEYOND THE PERIMETER: Cracking Sysco with Kerberos Exploitation & GPO Task Injection 🛡️💥	sysco
+machine	medium	2026-01-25_Resurrecting-the-Dead----Exploiting-Active-Directory-s-Recycle-Bin------5558982fc5fa.html	Resurrecting the Dead:💀 Exploiting Active Directory’s Recycle Bin ♻️✝️	cascade
+drop		2026-01-27_Thank-you-very-much--for-the-read-and-the-support--4f33fba99a2a.html	Thank you very much, for the read and the support!
+ctf	vulnhub-dc	2026-01-28_Unearthing-the-Truth-in-DC-4---Breaking-Strongholds---Command-Injection-----fb86d36c9047.html	Unearthing the Truth in DC-4 | Breaking Strongholds & Command Injection 🛡️	dc-4
+drop		2026-01-29_This-was-a-great-read--d102e17d37fb.html	This was a great read!
+ctf	vulnhub-dc	2026-01-30_---Unearthing-the-Truth-in-DC-5---From-LFI-to-Log-Poisoning-----9812112bcce3.html	🎯 Unearthing the Truth in DC-5 | From LFI to Log Poisoning 🛡️	dc-5
+drop		2026-02-02_Thank-you--sir--This-one-was-really-eye-opening-at-how-fast-it-decrypted-that-card--9dc96e1d6798.html	Thank you, sir. This one was really eye-opening at how fast it decrypted that card!
+skip		2026-02-02_The-Skeleton-Key-in-your-Pocket--Mastering-The-iCopy-XS--Part-2-of-5--43b80b9de904.html	The Skeleton Key in your Pocket: Mastering The iCopy-XS (Part 2 of 5)
+drop		2026-02-03_Yes-sir--thank-you--Can-t-wait-to-get-into-the-next-part--33bc10c8711a.html	Yes sir, thank you. Can't wait to get into the next part!
+machine	easy	2026-02-08_---Walking-the-Ancient-Paths-----Rooting-Legacy-Infrastructure-48a10435ba07.html	📜 Walking the Ancient Paths: 🕸️Rooting Legacy Infrastructure	lame
+ctf	vulnhub-dc	2026-02-10_---Unearthing-the-Truth-in-DC-9---From-SQL-Injection-to-SSH-Hijacking-----0755882e3fa0.html	🎯 Unearthing the Truth in DC-9 | From SQL Injection to SSH Hijacking 🛡️	dc-9
+skip		2026-02-14_The-Ultimate-Hack--How-God-Bypassed-the--Jeconiah-Curse--Firewall-0136ade4b1b7.html	The Ultimate Hack: How God Bypassed the “Jeconiah Curse” Firewall
+machine	easy	2026-02-15_Piercing-the-Veil-of-Timelapse--Encrypted-Keys---The-LAPS-Revelation-----716bf0c289bb.html	Piercing the Veil of Timelapse: Encrypted Keys & The LAPS Revelation 🛡️	timelapse
+ctf	vulnhub-dc	2026-02-28_----Unearthing-the-Truth-in-DC-1---From-Drupalgeddon-to-Root-----8cb0f626ebee.html	🛡️ Unearthing the Truth in DC-1 | From Drupalgeddon to Root 🛡️	dc-1
+drop		2026-03-25_No-I-just-picked-one-and-went-off-that--0723dbeb8aff.html	No I just picked one and went off that!
+machine	medium	2026-05-04_From-Anonymous-to-Administrator--A-Chain-of-Quiet-Mistakes-55d0daf90bf9.html	From Anonymous to Administrator: A Chain of Quiet Mistakes	monteverde
+skip		2026-05-04_How-I-Found-an-Unprotected-Login-Portal-on-a-Federal-VDP--and-Why-It-Still-Got-P5--e93dbed192b0.html	How I Found an Unprotected Login Portal on a Federal VDP (and Why It Still Got P5)
+drop		2026-06-03_Thank-you--Social-Arbaz--Appreciate-the-read--Also-leaving-a-comment--tha-k-you-brother--1a57be64a407.html	Thank you, Social Arbaz! Appreciate the read! Also leaving a comment, tha k you brother!
+drop		2026-06-04_Great-job--Love-seeing-hackers-giving-back-to-the-community-with-write-ups--Keep-up-the-great-work--42f6e11a1a55.html	Great job, Love seeing hackers giving back to the community with write-ups! Keep up the great work!
+drop		2026-06-05_Absolutely-----You--too--9a24c6449bce.html	Absolutely 💯. You, too!
+machine	medium	draft_Jeeves-HTB-Machine-Walk-Through--3de8f2ceb44d.html	Jeeves HTB Machine Walk-Through!	jeeves
+machine	medium	draft_Target--Era--Hack-The-Box--OS--Linux-Difficulty--Medium-Attack-Vectors--LFI---IDOR----PHP-Stream--41fba6bf6a0a.html	Target: Era (Hack The Box) OS: Linux Difficulty: Medium Attack Vectors: LFI / IDOR -&gt; PHP Stream…	era
+skip		draft_The-Skeleton-Key-in-your-Pocket--Mastering-the-I-Copy-XS-Part-3-of-5--3eecb02cf169.html	The Skeleton Key in your Pocket; Mastering the I-Copy XS(Part 3 of 5)
