@@ -1,0 +1,66 @@
+$schema: https://api.gitbook.com/gitbook-docs.yaml
+version: 1
+
+site:
+  title: K70n0s510 Writeups
+  structure:
+    - type: section
+      key: section-hackthebox
+      title: Hack The Box
+      path: hackthebox
+      description: Retired HTB machine writeups, grouped by difficulty.
+      icon: box
+      default: true
+      children:
+        - type: space
+          key: space-htb-easy
+          title: Easy
+          path: easy
+          default: true
+          content:
+            directory: ./machines/easy
+            language: en
+        - type: space
+          key: space-htb-medium
+          title: Medium
+          path: medium
+          content:
+            directory: ./machines/medium
+            language: en
+
+    - type: section
+      key: section-other-platforms
+      title: Other Platforms
+      path: platforms
+      description: Writeups from Vulnhub, HackSmarter, and CTF events.
+      icon: flag
+      children:
+        - type: space
+          key: space-vulnhub-dc
+          title: Vulnhub DC Series
+          path: vulnhub-dc
+          default: true
+          content:
+            directory: ./ctf/vulnhub-dc
+            language: en
+        - type: space
+          key: space-hacksmarter
+          title: HackSmarter
+          path: hacksmarter
+          content:
+            directory: ./ctf/hacksmarter
+            language: en
+        - type: space
+          key: space-heroctf
+          title: Hero CTF
+          path: heroctf
+          content:
+            directory: ./ctf/heroctf
+            language: en
+        - type: space
+          key: space-uoftctf
+          title: UofTCTF
+          path: uoftctf
+          content:
+            directory: ./ctf/uoftctf
+            language: en
