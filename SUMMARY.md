@@ -10,7 +10,7 @@
   * [Cap HTB Machine Walk-Through!](machines/easy/cap.md)
   * [Data HTB Machine Walk-Through](machines/easy/data.md)
   * [☢️ Devel: Anonymous FTP to Kernel Exploitation](machines/easy/devel.md)
-  * [⚡ Zero to Root: The Ultimate Guide to Hack The Box Driver 🏆](machines/easy/driver.md)
+  * [⚡ Driver](machines/easy/driver.md)
   * [Fluffy HTB Machine Walk-Through.](machines/easy/fluffy.md)
   * [🚀 From Login Form to Root Access: Chaining SQLi & SSTI for Total Compromise](machines/easy/goodgames.md)
   * [🔪 Knife: The Invisible Wound in the Supply Chain](machines/easy/knife.md)
