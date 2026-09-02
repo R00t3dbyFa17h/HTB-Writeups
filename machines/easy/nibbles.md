@@ -1,15 +1,16 @@
-# 📜 Nibbles: Web Enumeration & File Upload Exploitation
+# Nibbles
 
-Target: Nibbles (Hack The Box) OS: Linux Difficulty: Easy Attack Vectors: File Upload Vulnerability (CVE-2015–6967) -\> Web Shell -\> Sudo…
+Target: Nibbles (Hack The Box) OS: Linux Difficulty: Easy Attack Vectors: File Upload Vulnerability (CVE-2015–6967) -> Web Shell -> Sudo…
 
----
+***
 
 ### 📜 Nibbles: Web Enumeration & File Upload Exploitation
 
 ![](https://cdn-images-1.medium.com/max/800/1*TIlF_tClAGBdX9pR-16J5w.png)
-<figcaption>image created by Nicholas Mullenski (Gemini)</figcaption>
 
-**Target:** *Nibbles (Hack The Box)* **OS:** *Linux* **Difficulty:** *Easy* **Attack Vectors:** *File Upload Vulnerability (CVE-2015–6967) -\> Web Shell -\> Sudo Misconfiguration.*
+image created by Nicholas Mullenski (Gemini)
+
+**Target:** _Nibbles (Hack The Box)_ **OS:** _Linux_ **Difficulty:** _Easy_ **Attack Vectors:** _File Upload Vulnerability (CVE-2015–6967) -> Web Shell -> Sudo Misconfiguration._
 
 ### Executive Summary
 
@@ -17,11 +18,11 @@ This assessment targeted “Nibbles,” a Linux-based machine hosting a vulnerab
 
 Root compromise was achieved by enumerating local privileges. We discovered a **`sudo`** misconfiguration that allowed the execution of a specific shell script (**`monitor.sh`**) without a password. By recreating this script and injecting a malicious payload, we escalated privileges from a low-level user to full administrative (Root) control.
 
-### 1.0 Initial Foothold
+### 1.0 Initial Foothold
 
 #### 1.1 Reconnaissance & Enumeration
 
-#### 1.1.1 Nmap Scan
+#### 1.1.1 Nmap Scan
 
 The assessment began with a full TCP port scan using Nmap to identify all open services and gather version information on the target 10.10.10.75.
 
@@ -55,48 +56,52 @@ HOP RTT      ADDRESS
 <SNIP>
 ```
 
-#### 1.1.2 Nmap Scan Analysis
+#### 1.1.2 Nmap Scan Analysis
 
 The scan identified two open ports on the target 10.10.10.75: SSH (22) and HTTP (80). The SSH service is running **OpenSSH 7.2p2**, which is a standard version for Ubuntu Xenial (16.04). The HTTP service is hosted on **Apache 2.4.18**.
 
 Notably, the Nmap script **`http-title`** reported "Site doesn't have a title." This is a significant indicator that the web root (`/`) may contain a placeholder page or minimal content, requiring us to inspect the HTML source code or perform directory brute-forcing to locate the actual web application.
 
-### 1.2 Key Findings
+### 1.2 Key Findings
 
-- <span id="2845">**Port 22 (SSH):** OpenSSH 7.2p2 (Ubuntu).</span>
-- <span id="d3f4">**Port 80 (HTTP):** Apache httpd 2.4.18.</span>
-- <span id="59cb">**Web Fingerprint:** The lack of a default title suggests the main application is likely hidden in a subdirectory.</span>
+* **Port 22 (SSH):** OpenSSH 7.2p2 (Ubuntu).
+* **Port 80 (HTTP):** Apache httpd 2.4.18.
+* **Web Fingerprint:** The lack of a default title suggests the main application is likely hidden in a subdirectory.
 
 ### 1.3 Web Application Enumeration
 
-1.  <span id="30e2">**3.1 Analysis** Navigating to **`http://10.10.10.75`** presents a simple "Hello world!" message. This confirms the Nmap finding that the root directory is empty of functionality.</span>
+1. **3.1 Analysis** Navigating to **`http://10.10.10.75`** presents a simple "Hello world!" message. This confirms the Nmap finding that the root directory is empty of functionality.
 
 ![](https://cdn-images-1.medium.com/max/800/1*flSkwQtkp0PP5pMf-AKXug.png)
-<figcaption>Image created by Nicholas Mullenski</figcaption>
+
+Image created by Nicholas Mullenski
 
 **1.3.2 Source Code Review** To identify hidden directories, we must manually inspect the HTML source code for comments or hidden links.
 
 ![](https://cdn-images-1.medium.com/max/800/1*Qin7-nHdbmR8AyxYiCmwUQ.png)
-<figcaption>Image created by Nicholas Mullenski</figcaption>
+
+Image created by Nicholas Mullenski
 
 **1.3.3 Directory Enumeration** By inspecting the HTML source of the landing page, we discovered a developer comment explicitly mentioning a hidden directory: \`\`. Navigating to **`http://10.10.10.75/nibbleblog/`** revealed a functional blog site powered by **Nibbleblog**, a lightweight XML-based blogging engine.
 
 ![](https://cdn-images-1.medium.com/max/800/1*bbS03aBetk8cst6rr9i86Q.png)
-<figcaption>Image created by Nicholas Mullenski</figcaption>
+
+Image created by Nicholas Mullenski
 
 #### **1.4 Vulnerability Assessment**
 
 **1.4.1 Technology Identification** Further enumeration of the **`/nibbleblog/`** directory structure led us to the administrative portal at **`http://10.10.10.75/nibbleblog/admin.php`**. We also identified the software version by locating the **`README`** file, which confirmed the installation of **Nibbleblog 4.0.3**.
 
 ![](https://cdn-images-1.medium.com/max/800/1*mzhk-1wvTZTV7UBo4rzcGg.png)
-<figcaption>Image created by Nicholas Mullenski</figcaption>
+
+Image created by Nicholas Mullenski
 
 **1.4.1 Technology Identification** Further enumeration of the **`/nibbleblog/`** directory structure led us to the **`README`** file, which explicitly disclosed the software version.
 
-- <span id="58c0">**Software:** Nibbleblog v4.0.3 (Codename: Coffee)</span>
-- <span id="1d3f">**Release Date:** 2014–04–01</span>
+* **Software:** Nibbleblog v4.0.3 (Codename: Coffee)
+* **Release Date:** 2014–04–01
 
-#### This version is critical as it predates several security patches.
+#### This version is critical as it predates several security patches.
 
 #### 1.5 Authentication & Vulnerability Discovery
 
@@ -104,24 +109,26 @@ Notably, the Nmap script **`http-title`** reported "Site doesn't have a title." 
 
 We located the administrative portal at **`http://10.10.10.75/nibbleblog/admin.php`**. Given the context of the machine name ("Nibbles"), we attempted standard weak credential guessing.
 
-- <span id="e0a9">**Username:** **`admin`**</span>
-- <span id="8345">**Password:** **`nibbles`**</span>
+* **Username:** **`admin`**
+* **Password:** **`nibbles`**
 
 ![](https://cdn-images-1.medium.com/max/800/1*PeqZNNTSqIVSwOnqXs4E9Q.png)
-<figcaption>Image created by Nicholas Mullenski</figcaption>
+
+Image created by Nicholas Mullenski
 
 The credentials were valid, granting us administrative access to the dashboard.
 
 ![](https://cdn-images-1.medium.com/max/800/1*30p2eQQToBdBokQo5b4FAw.png)
-<figcaption>Image created by Nicholas Mullenski</figcaption>
+
+Image created by Nicholas Mullenski
 
 #### 1.5.2 Vulnerability Identification (CVE-2015–6967)
 
 With admin access to Nibbleblog 4.0.3, we identified the **“My Image”** plugin. This specific plugin is vulnerable to **CVE-2015–6967** (Arbitrary File Upload), as it fails to properly sanitize uploaded files, allowing an attacker to upload a PHP script and execute code.
 
-### 2.0 Initial Shell
+### 2.0 Initial Shell
 
-### 2.1 Payload Delivery
+### 2.1 Payload Delivery
 
 **2.1.1** To leverage the file upload vulnerability, we crafted a minimal PHP web shell to execute system commands.
 
@@ -155,7 +162,7 @@ uid=1001(nibbler) gid=1001(nibbler) groups=1001(nibbler)
 
 **2.2.2** The server responded with the user ID **`1001(nibbler)`**, confirming that we have achieved Remote Code Execution (RCE).
 
-#### 2.3 Reverse Shell Access
+#### 2.3 Reverse Shell Access
 
 **2.3.1** To establish a stable, interactive session, we embedded a Netcat reverse shell payload directly into the **`image.php`** file and re-uploaded it via the administration panel.
 
@@ -180,11 +187,12 @@ python3 -c 'import pty; pty.spawn("/bin/bash")'
 **2.4.2 Outcome:** This provided a stable bash prompt (**`nibbler@Nibbles:/$`**), allowing for standard input handling, command history, and **`sudo`** execution.
 
 ![](https://cdn-images-1.medium.com/max/800/1*HrEv7Z_gBIpPsairwA0umQ.png)
-<figcaption>Image created by Nicholas Mullenski</figcaption>
+
+Image created by Nicholas Mullenski
 
 ### 3.0 Post-Exploitation
 
-#### 3.1 Flag Capture (User)
+#### 3.1 Flag Capture (User)
 
 **3.1.1**With interactive access confirmed, we retrieved the user-level proof of compromise located in the user’s home directory.
 
@@ -237,7 +245,7 @@ echo "/bin/bash" >> personal/stuff/monitor.sh
 chmod +x personal/stuff/monitor.sh(Note: In the live environment, escaping the ! is necessary, e.g., echo "\#!/bin/bash", to avoid history expansion errors, though the payload succeeded regardless.)
 ```
 
-*(Note: In the live environment, escaping the ****`!`*** *is necessary, e.g.,* ***`echo "\#!/bin/bash"`****, to avoid history expansion errors, though the payload succeeded regardless.)*
+\*(Note: In the live environment, escaping the \*_**`!`**_ _is necessary, e.g.,_ _**`echo "\#!/bin/bash"`**\*\*, to avoid history expansion errors, though the payload succeeded regardless.)_
 
 **Step 2: Execution** We executed the script using **`sudo`** to leverage the NOPASSWD configuration.
 
@@ -249,7 +257,7 @@ sudo /home/nibbler/personal/stuff/monitor.sh
 
 **Outcome:** The command effectively elevated our privileges, transitioning the session from **`nibbler@Nibbles`** to **`root@Nibbles`**.
 
-### 3.4 Flag Capture (Root)
+### 3.4 Flag Capture (Root)
 
 With full administrative access, we retrieved the final objective.
 
@@ -264,9 +272,10 @@ cat /root/root.txt
 ```
 
 ![](https://cdn-images-1.medium.com/max/800/1*KQ2t02QuYAqG9jonaZMtfQ.png)
-<figcaption>image created by Nicholas Mullenski (gemini)</figcaption>
 
-### 4.0 Final Thoughts: The Red Team Mandate
+image created by Nicholas Mullenski (gemini)
+
+### 4.0 Final Thoughts: The Red Team Mandate
 
 The compromise of “Nibbles” illustrates how minor oversights accumulate into a critical failure. The initial entry point was a single vulnerable plugin in a blog platform (Arbitrary File Upload). The path to Root was left open by a “convenience” configuration — a sudo permission for a script that didn’t even exist yet.
 
@@ -276,29 +285,29 @@ By identifying these “small” holes — a nibble here, a misconfiguration
 
 **Song of Solomon 2:15**
 
-> *“Catch for us the foxes, the little foxes that ruin the vineyards, our vineyards that are in bloom.”*
+> _“Catch for us the foxes, the little foxes that ruin the vineyards, our vineyards that are in bloom.”_
 
 **How it ties into the machine:**
 
-- <span id="bae4">**The Name:** The machine is named “Nibbles,” implying small bites or small creatures.</span>
-- <span id="4046">**The Vulnerability:** The security failure wasn’t a massive, complex architecture flaw. It was “little foxes” — a neglected plugin and a lazy **`sudo`** rule.</span>
-- <span id="9eff">**The Application:** Just as little foxes can ruin a whole vineyard by gnawing on the roots, these small, overlooked vulnerabilities (the “nibbles”) destroyed the integrity of the entire server. Security is often lost not in the mountains, but in the details.</span>
+* **The Name:** The machine is named “Nibbles,” implying small bites or small creatures.
+* **The Vulnerability:** The security failure wasn’t a massive, complex architecture flaw. It was “little foxes” — a neglected plugin and a lazy **`sudo`** rule.
+* **The Application:** Just as little foxes can ruin a whole vineyard by gnawing on the roots, these small, overlooked vulnerabilities (the “nibbles”) destroyed the integrity of the entire server. Security is often lost not in the mountains, but in the details.
 
-### 🚀 Join the Mission
+### 🚀 Join the Mission
 
 I don’t want to do this alone. I want to build a community of people who are hungry to learn, build, and break things (ethically). I am constantly looking for the next challenge.
 
-- <span id="cc91">Is there a specific tool you wish existed?</span>
-- <span id="75ab">Is there a hacking concept you want me to learn and explain?</span>
-- <span id="7fba">Do you have a “brick wall” you’re hitting in your own research?</span>
+* Is there a specific tool you wish existed?
+* Is there a hacking concept you want me to learn and explain?
+* Do you have a “brick wall” you’re hitting in your own research?
 
 **Jump into the server, drop a message, and tell me what I should build or learn next. Let’s sharpen each other.**
 
-<a href="https://discord.gg/8buAHtm2fK" class="markup--anchor markup--mixtapeEmbed-anchor" data-href="https://discord.gg/8buAHtm2fK" title="https://discord.gg/8buAHtm2fK"><strong>Join the Iron-Breach Discord Server!</strong><br />
-<em>An advanced study group for Offensive Security professionals and students. We specialize in Red Teaming simulation…</em>discord.gg</a><a href="https://discord.gg/8buAHtm2fK" class="js-mixtapeImage mixtapeImage mixtapeImage--empty u-ignoreBlock" data-media-id="9784a322b4c4322c092dbd39583df8bb"></a>
+[**Join the Iron-Breach Discord Server!**\
+_&#x41;n advanced study group for Offensive Security professionals and students. We specialize in Red Teaming simulation…_&#x64;iscord.gg](https://discord.gg/8buAHtm2fK)
 
-By <a href="https://medium.com/@nicholasmullenski" class="p-author h-card">Nicholas Mullenski</a> on [January 5, 2026](https://medium.com/p/9b69ed1b579b).
+By [Nicholas Mullenski](https://medium.com/@nicholasmullenski) on [January 5, 2026](https://medium.com/p/9b69ed1b579b).
 
-<a href="https://medium.com/@nicholasmullenski/nibbles-web-enumeration-file-upload-exploitation-9b69ed1b579b" class="p-canonical">Canonical link</a>
+[Canonical link](https://medium.com/@nicholasmullenski/nibbles-web-enumeration-file-upload-exploitation-9b69ed1b579b)
 
 Exported from [Medium](https://medium.com) on September 1, 2026.

