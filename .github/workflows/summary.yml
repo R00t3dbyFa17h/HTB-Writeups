@@ -25,7 +25,7 @@ jobs:
           python-version: '3.12'
 
       - name: Regenerate SUMMARY.md
-        run: python3 tools/gen_summary.py -t "Iron-Breach Writeups"
+        run: python3 tools/gen_summary.py -t "K70n0s510 Writeups"
 
       - name: Commit if changed
         run: |
