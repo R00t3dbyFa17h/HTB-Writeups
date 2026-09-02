@@ -1,9 +1,9 @@
 # Table of contents
 
 * [🕵️‍♂️ Bashed](README.md)
-* [⚔️ The Breach in the Wall: Exploiting MS17–010 on HTB Blue 🧱](blue.md)
+* [⚔️ Blue](blue.md)
 * [Cap](cap.md)
-* [Data HTB Machine Walk-Through](data.md)
+* [Data](data.md)
 * [☢️ Devel: Anonymous FTP to Kernel Exploitation](devel.md)
 * [⚡ Zero to Root: The Ultimate Guide to Hack The Box Driver 🏆](driver.md)
 * [Fluffy HTB Machine Walk-Through.](fluffy.md)
