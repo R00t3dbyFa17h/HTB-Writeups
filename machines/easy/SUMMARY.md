@@ -1,6 +1,6 @@
 # Table of contents
 
-* [🕵️‍♂️ Bashed](README.md)
+* [Bashed](README.md)
 * [Blue](blue.md)
 * [Cap](cap.md)
 * [Data](data.md)
