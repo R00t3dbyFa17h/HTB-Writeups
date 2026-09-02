@@ -1,21 +1,22 @@
-# 🔪 Knife: The Invisible Wound in the Supply Chain
+# Knife
 
 Uncovering the infamous PHP 8.1.0-dev backdoor and executing the User-Agent RCE! 🔓🚀
 
----
+***
 
 ### 🔪 Knife: The Supply Chain Deception
 
 ![](https://cdn-images-1.medium.com/max/800/1*H9Y1M7lGla0NnUU11VuF6A.png)
-<figcaption>Image created by Nicholas Mullenski (Gemini)</figcaption>
 
-**Target:** *Knife (10.10.10.242)* **OS:** *Linux* *(Ubuntu)* **Difficulty:** *Easy* **Attack Vectors:** *PHP Supply Chain Backdoor -\> Remote Code Execution (RCE) -\> Sudo Misconfiguration (GTFOBins)*.
+Image created by Nicholas Mullenski (Gemini)
 
-> <a href="https://medium.com/the-first-digit/knife-the-invisible-wound-in-the-supply-chain-5a2df1d3683d?sk=333142e9bc23b8af0f830b876253fd80" class="markup--anchor markup--pullquote-anchor" data-href="https://medium.com/the-first-digit/knife-the-invisible-wound-in-the-supply-chain-5a2df1d3683d?sk=333142e9bc23b8af0f830b876253fd80" target="_blank">**Not a Member?? Click Here to read Full-Story**</a>
+**Target:** _Knife (10.10.10.242)_ **OS:** _Linux_ _(Ubuntu)_ **Difficulty:** _Easy_ **Attack Vectors:** _PHP Supply Chain Backdoor -> Remote Code Execution (RCE) -> Sudo Misconfiguration (GTFOBins)_.
+
+> [**Not a Member?? Click Here to read Full-Story**](https://medium.com/the-first-digit/knife-the-invisible-wound-in-the-supply-chain-5a2df1d3683d?sk=333142e9bc23b8af0f830b876253fd80)
 
 ### Executive Summary
 
-**Assessment Date:** *January 1, 2026* **Risk Level:** *CRITICAL* **Author:** *Nicholas Mullenski*
+**Assessment Date:** _January 1, 2026_ **Risk Level:** _CRITICAL_ **Author:** _Nicholas Mullenski_
 
 ### Overview
 
@@ -23,21 +24,21 @@ The “Knife” engagement demonstrated a severe supply chain compromise affecti
 
 ### Key Findings
 
-1.  <span id="4fc3">**Supply Chain Compromise:** The web server identified itself as running “PHP 8.1.0-dev”. This specific version was compromised at the source code level in March 2021, containing a hidden backdoor.</span>
-2.  <span id="cec7">**Remote Command Execution (RCE):** By sending a specially crafted **`User-Agentt`** header (noting the double 't'), an attacker could bypass authentication and execute system commands as the **`www-data`** user.</span>
-3.  <span id="964c">**Privilege Escalation:** The system utility **`knife`** (part of the Chef infrastructure management tool) was configured to run via **`sudo`** without a password. This allowed for immediate escalation to Root privileges.</span>
+1. **Supply Chain Compromise:** The web server identified itself as running “PHP 8.1.0-dev”. This specific version was compromised at the source code level in March 2021, containing a hidden backdoor.
+2. **Remote Command Execution (RCE):** By sending a specially crafted **`User-Agentt`** header (noting the double 't'), an attacker could bypass authentication and execute system commands as the **`www-data`** user.
+3. **Privilege Escalation:** The system utility **`knife`** (part of the Chef infrastructure management tool) was configured to run via **`sudo`** without a password. This allowed for immediate escalation to Root privileges.
 
 ### Strategic Recommendation
 
 Organizations must strictly avoid deploying “dev” or “nightly” build versions of software in production environments. All software versions should be verified against official release signatures. The specific compromised version of PHP must be replaced with a stable, patched release immediately.
 
-### 1.0 Initial Foothold
+### 1.0 Initial Foothold
 
 #### 1.1 Reconnaissance & Enumeration
 
-#### 1.1.1 Nmap Scan
+#### 1.1.1 Nmap Scan
 
-- <span id="2e8a">We began the engagement with a comprehensive port scan to identify the attack surface.</span>
+* We began the engagement with a comprehensive port scan to identify the attack surface.
 
 **Command:**
 
@@ -50,13 +51,13 @@ PORT   STATE SERVICE VERSION
 
 #### 1.1.2 Analysis
 
-- <span id="b9a8">The scan revealed a minimal attack surface with only SSH and HTTP exposed. The Apache version (2.4.41) is relatively standard. The critical next step is to fingerprint the backend scripting language to identify potential vulnerabilities in the web stack.</span>
+* The scan revealed a minimal attack surface with only SSH and HTTP exposed. The Apache version (2.4.41) is relatively standard. The critical next step is to fingerprint the backend scripting language to identify potential vulnerabilities in the web stack.
 
 #### 1.2 Web Enumeration (Fingerprinting)
 
-#### 1.2.1 Banner Grabbing
+#### 1.2.1 Banner Grabbing
 
-- <span id="ee18">To identify the technology stack powering the web server, I inspected the HTTP response headers.</span>
+* To identify the technology stack powering the web server, I inspected the HTTP response headers.
 
 **Command:**
 
@@ -75,7 +76,7 @@ Content-Type: text/html; charset=UTF-8
 
 #### 2.1 The “User-Agentt” Backdoor
 
-- <span id="7840">Research into **`PHP 8.1.0-dev`** revealed that the Git repository for PHP was compromised. Malicious code was injected that looks for an HTTP header named **`User-Agentt`** (note the double 't'). If the header string starts with **`zerodium`**, the system executes the PHP code following it.</span>
+* Research into **`PHP 8.1.0-dev`** revealed that the Git repository for PHP was compromised. Malicious code was injected that looks for an HTTP header named **`User-Agentt`** (note the double 't'). If the header string starts with **`zerodium`**, the system executes the PHP code following it.
 
 **Vulnerable Code Snippet:**
 
@@ -93,7 +94,7 @@ No input file specified.
 
 #### 3.1.1
 
-- <span id="2f76">Having established Remote Code Execution (RCE) via the PHP backdoor, I utilized **`curl`** to inspect the **`sudo`** configuration for the compromised user.</span>
+* Having established Remote Code Execution (RCE) via the PHP backdoor, I utilized **`curl`** to inspect the **`sudo`** configuration for the compromised user.
 
 **Command:**
 
@@ -118,9 +119,9 @@ No input file specified.
 
 **Methodology:** I constructed a nested payload:
 
-1.  <span id="d4ae">**PHP Layer:** The **`system()`** call executes the bash command.</span>
-2.  <span id="8bdd">**Bash Layer:** **`sudo knife exec -E`** runs the Ruby code.</span>
-3.  <span id="1b2b">**Ruby Layer:** **`exec("cat /root/root.txt")`** reads the flag.</span>
+1. **PHP Layer:** The **`system()`** call executes the bash command.
+2. **Bash Layer:** **`sudo knife exec -E`** runs the Ruby code.
+3. **Ruby Layer:** **`exec("cat /root/root.txt")`** reads the flag.
 
 **Final Exploit Command:**
 
@@ -133,47 +134,48 @@ No input file specified.
 ```
 
 ![](https://cdn-images-1.medium.com/max/800/1*K-_o5OtkezA3XraTcz5AKQ.png)
-<figcaption>Image created by Nicholas Mullenski</figcaption>
+
+Image created by Nicholas Mullenski
 
 ### Executive Conclusion
 
 The **Knife** engagement serves as a stark reminder of the dangers of **Supply Chain Attacks**.
 
-1.  <span id="8d6a">**The Flaw:** The organization was running a compromised “dev” version of PHP (**`8.1.0-dev`**). This version contained a hardcoded backdoor injected via a malicious commit to the official PHP git repository.</span>
-2.  <span id="7af2">**The Impact:** This allowed unauthenticated attackers to execute code remotely by simply modifying a single HTTP header (**`User-Agentt`**), completely bypassing standard authentication mechanisms.</span>
-3.  <span id="7f42">**The Escalation:** Poorly scoped **`sudo`** permissions on the **`knife`** utility allowed for immediate elevation to Root using a simple one-liner.</span>
+1. **The Flaw:** The organization was running a compromised “dev” version of PHP (**`8.1.0-dev`**). This version contained a hardcoded backdoor injected via a malicious commit to the official PHP git repository.
+2. **The Impact:** This allowed unauthenticated attackers to execute code remotely by simply modifying a single HTTP header (**`User-Agentt`**), completely bypassing standard authentication mechanisms.
+3. **The Escalation:** Poorly scoped **`sudo`** permissions on the **`knife`** utility allowed for immediate elevation to Root using a simple one-liner.
 
-### Red Team Mandate
+### Red Team Mandate
 
 **Remediation Strategy:**
 
-1.  <span id="b710">**Strict Version Control:** Never deploy “dev”, “nightly”, or “snapshot” versions of critical infrastructure software in a production environment. Stick to stable, signed releases. The use of **`PHP 8.1.0-dev`** was the primary failure point.</span>
-2.  <span id="ba7c">**Least Privilege Implementation:** Restrict **`sudo`** permissions. Administrative tools like **`knife`** (which allow script execution) should never be run as root without password authentication or tight argument restrictions.</span>
-3.  <span id="a0dc">**Network Segmentation:** While not the primary vector here, web servers running experimental software should be strictly isolated from the internal network to prevent lateral movement.</span>
+1. **Strict Version Control:** Never deploy “dev”, “nightly”, or “snapshot” versions of critical infrastructure software in a production environment. Stick to stable, signed releases. The use of **`PHP 8.1.0-dev`** was the primary failure point.
+2. **Least Privilege Implementation:** Restrict **`sudo`** permissions. Administrative tools like **`knife`** (which allow script execution) should never be run as root without password authentication or tight argument restrictions.
+3. **Network Segmentation:** While not the primary vector here, web servers running experimental software should be strictly isolated from the internal network to prevent lateral movement.
 
-### The Biblical Tie-In
+### The Biblical Tie-In
 
 The vulnerability in this lab came from a **poisoned source**. The administrators likely thought they were downloading a standard, safe tool (PHP), but the source code itself had been compromised by a “wolf in sheep’s clothing.”
 
-> ***“Watch out for false prophets. They come to you in sheep’s clothing, but inwardly they are ferocious wolves.” — Matthew 7:15 (NIV)***
+> _**“Watch out for false prophets. They come to you in sheep’s clothing, but inwardly they are ferocious wolves.” — Matthew 7:15 (NIV)**_
 
 **Application:** In cybersecurity, we implicitly trust our repositories, our libraries, and our updates. In our spiritual lives, we often implicitly trust the media we consume, the advice we hear, or the “truths” culture hands us. But just because a source looks official doesn’t mean it’s pure. We must verify the source. We must “test the spirits” to see if they are from God, ensuring we aren’t installing a backdoor into our hearts that the enemy can use later.
 
-### 🚀 Join the Mission
+### 🚀 Join the Mission
 
 I don’t want to do this alone. I want to build a community of people who are hungry to learn, build, and break things (ethically). I am constantly looking for the next challenge.
 
-- <span id="fd61">Is there a specific tool you wish existed?</span>
-- <span id="db7b">Is there a hacking concept you want me to learn and explain?</span>
-- <span id="8dc7">Do you have a “brick wall” you’re hitting in your own research?</span>
+* Is there a specific tool you wish existed?
+* Is there a hacking concept you want me to learn and explain?
+* Do you have a “brick wall” you’re hitting in your own research?
 
 Jump into the server, drop a message, and tell me what I should build or learn next. Let’s sharpen each other.
 
-<a href="https://discord.gg/y5P9NrzUBX" class="markup--anchor markup--mixtapeEmbed-anchor" data-href="https://discord.gg/y5P9NrzUBX" title="https://discord.gg/y5P9NrzUBX"><strong>Join the Iron-Breach Discord Server!</strong><br />
-<em>An advanced study group for Offensive Security professionals and students. We specialize in Red Teaming simulation…</em>discord.gg</a><a href="https://discord.gg/y5P9NrzUBX" class="js-mixtapeImage mixtapeImage mixtapeImage--empty u-ignoreBlock" data-media-id="24dfae94077d6390f2d0a2dd40dfe1fc"></a>
+[**Join the Iron-Breach Discord Server!**\
+_&#x41;n advanced study group for Offensive Security professionals and students. We specialize in Red Teaming simulation…_&#x64;iscord.gg](https://discord.gg/y5P9NrzUBX)
 
-By <a href="https://medium.com/@nicholasmullenski" class="p-author h-card">Nicholas Mullenski</a> on [January 9, 2026](https://medium.com/p/5a2df1d3683d).
+By [Nicholas Mullenski](https://medium.com/@nicholasmullenski) on [January 9, 2026](https://medium.com/p/5a2df1d3683d).
 
-<a href="https://medium.com/@nicholasmullenski/knife-the-invisible-wound-in-the-supply-chain-5a2df1d3683d" class="p-canonical">Canonical link</a>
+[Canonical link](https://medium.com/@nicholasmullenski/knife-the-invisible-wound-in-the-supply-chain-5a2df1d3683d)
 
 Exported from [Medium](https://medium.com) on September 1, 2026.

