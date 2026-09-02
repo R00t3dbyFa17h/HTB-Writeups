@@ -6,7 +6,7 @@
 * [Data](data.md)
 * [☢️ Devel](devel.md)
 * [⚡ Driver](driver.md)
-* [Fluffy HTB Machine Walk-Through.](fluffy.md)
+* [Fluffy](fluffy.md)
 * [🚀 From Login Form to Root Access: Chaining SQLi & SSTI for Total Compromise](goodgames.md)
 * [🔪 Knife: The Invisible Wound in the Supply Chain](knife.md)
 * [📜 Walking the Ancient Paths: 🕸️Rooting Legacy Infrastructure](lame.md)
