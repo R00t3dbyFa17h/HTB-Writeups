@@ -1,11 +1,11 @@
-# Iron-Breach Writeups
+# K70n0s510 Writeups
 
 * [Introduction](README.md)
 
 ## Machines
 
 * [Easy]()
-  * [🕵️‍♂️ Hacking Bashed: The Deadly Cost of "Shadow IT" Exposed 💀](machines/easy/bashed.md)
+  * [Table of contents](machines/easy/SUMMARY.md)
   * [⚔️ The Breach in the Wall: Exploiting MS17–010 on HTB Blue 🧱](machines/easy/blue.md)
   * [Cap HTB Machine Walk-Through!](machines/easy/cap.md)
   * [Data HTB Machine Walk-Through](machines/easy/data.md)
