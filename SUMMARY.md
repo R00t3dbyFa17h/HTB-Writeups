@@ -6,7 +6,7 @@
 
 * [Easy]()
   * [Table of contents](machines/easy/SUMMARY.md)
-  * [⚔️ The Breach in the Wall: Exploiting MS17–010 on HTB Blue 🧱](machines/easy/blue.md)
+  * [Blue](machines/easy/blue.md)
   * [Cap HTB Machine Walk-Through!](machines/easy/cap.md)
   * [Data HTB Machine Walk-Through](machines/easy/data.md)
   * [Devel](machines/easy/devel.md)
