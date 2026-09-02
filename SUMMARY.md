@@ -28,11 +28,9 @@
   * [Timelapse](machines/easy/timelapse.md)
   * [Trick HTB Machine Walkthrough](machines/easy/trick.md)
 * [Medium]()
-  * [Exposed Pipelines:📈 Rooting HTB Builder via CVE-2024-23897](machines/medium/builder.md)
+  * [Table of contents](machines/medium/SUMMARY.md)
   * [Resurrecting the Dead:💀 Exploiting Active Directory’s Recycle Bin ♻️✝️](machines/medium/cascade.md)
-  * [Target: Era (Hack The Box) OS: Linux Difficulty: Medium Attack Vectors: LFI / IDOR -\> PHP Stream…](machines/medium/era.md)
-  * [🏗️ PROTOCOL BREACH: Engineering Total Domain Compromise on HTB Escape](machines/medium/escape.md)
-  * [Jeeves HTB Machine Walk-Through!](machines/medium/jeeves.md)
+  * [Escape](machines/medium/escape.md)
   * [From Anonymous to Administrator: A Chain of Quiet Mistakes](machines/medium/monteverde.md)
 
 ## Other CTFs
