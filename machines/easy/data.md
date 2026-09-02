@@ -2,13 +2,13 @@
 
 The Data machine is solved by exploiting CVE‑2021‑43798, a Grafana path traversal that lets you read its database file. Cracking the…
 
----
+***
 
 ### Data HTB Machine Walk-Through
 
-> Executive Summary: The Data machine is solved by exploiting CVE‑2021‑43798, a Grafana path traversal that lets you read its database file. Cracking the stored hashes provides SSH access as , who can escalate to root by abusing privileges with a privileged container and host filesystem mount.
+> Executive Summary: The Data machine is solved by exploiting CVE‑2021‑43798, a Grafana path traversal that lets you read its database file. Cracking the stored hashes provides SSH access as , who can escalate to root by abusing privileges with a privileged container and host filesystem mount.
 
-\## If you’re not a member read the story <a href="https://medium.com/@nmullenski05102016/data-htb-machine-walk-through-9ab185032975?sk=203109ad7c4225a421588ec3e6b2f969" class="markup--anchor markup--p-anchor" data-href="https://medium.com/@nmullenski05102016/data-htb-machine-walk-through-9ab185032975?sk=203109ad7c4225a421588ec3e6b2f969" target="_blank">** here</a> \*\*…
+\## If you’re not a member read the story [\*\* here](https://medium.com/@nmullenski05102016/data-htb-machine-walk-through-9ab185032975?sk=203109ad7c4225a421588ec3e6b2f969) \*\*…
 
 ![](https://cdn-images-1.medium.com/max/800/1*bQAFbuuBZOhcdpdjvFUdkg.png)
 
@@ -143,7 +143,7 @@ Nmap done: 1 IP address (1 host up) scanned in 15.53 seconds
 • Grafana service on port 3000 is the main attack surface. This aligns with CVE‑2021‑43798 (path traversal → arbitrary file read).\
 • SSH is available, but credentials are needed — likely obtained after cracking hashes from Grafana’s database.\
 • OS fingerprinting suggests Linux kernel 4.15–5.19, consistent with Ubuntu 18.04/20.04.\
-• Uptime ~14 days, so the system is stable and likely not freshly rebooted.\
+• Uptime \~14 days, so the system is stable and likely not freshly rebooted.\
 • Service banners confirm this is a standard HTB-style setup: Grafana front‑end + SSH backdoor once creds are recovered.
 
 Also Nmap shows one additional hop to get to the webserver. we can use LFT to confirm this:
@@ -167,13 +167,14 @@ traceroute to 10.129.234.47 (10.129.234.47), 30 hops max, 60 byte packets
 Let’s go ahead and checkout the website and see what we have to work with.
 
 ![](https://cdn-images-1.medium.com/max/800/1*jaLz2ytULzzeVpIGKAAuqA.png)
-<figcaption>See the version # at the bottom.</figcaption>
+
+See the version # at the bottom.
 
 Upon a quick google search for any known Vulnerabilities known in this version of grafana..
 
 ![](https://cdn-images-1.medium.com/max/800/1*_DC8RASpI0wUpkFBQDPVbw.png)
 
-Grab the \*\* <a href="https://github.com/pedrohavay/exploit-grafana-CVE-2021-43798" class="markup--anchor markup--p-anchor" data-href="https://github.com/pedrohavay/exploit-grafana-CVE-2021-43798" rel="noopener" target="_blank">POC</a> \*\* from GitHub and set it up in a virtual environment so you don’t run into Kali’s package restrictions. Depending on your Python version, you’ll need to tweak the import line where it calls Mapping (switching it to \[collection.abc.Mapping\] for Python 3.10+). Once that adjustment is made and the requirements are installed inside the venv, the script runs smoothly and starts pulling useful information from the target.
+Grab the \*\* [POC](https://github.com/pedrohavay/exploit-grafana-CVE-2021-43798) \*\* from GitHub and set it up in a virtual environment so you don’t run into Kali’s package restrictions. Depending on your Python version, you’ll need to tweak the import line where it calls Mapping (switching it to \[collection.abc.Mapping] for Python 3.10+). Once that adjustment is made and the requirements are installed inside the venv, the script runs smoothly and starts pulling useful information from the target.
 
 ```
 ┌──(venv)─(achilles㉿Nicholas)-[~/HTB/Labs/Data/exploit-grafana-CVE-2021-43798]
@@ -258,7 +259,7 @@ sqlite> select * from user;
 2|0|boris|boris@data.vl|boris|dc6becccbb57d34daf4a4e391d2015d3350c60df3608e9e99b5291e47f3e5cd39d156be220745be3cbe49353e35f53b51da8|LCBhdtJWjl|mYl941ma8w||1|0|0||2022-01-23 12:49:11|2022-01-23 12:49:11|0|2012-01-23 12:49:11|0
 ```
 
-Now we can take these 2 hashes and save them and crack them with hashcat or john whichever you prefer. After a bit of research we found out that grafana uses a special hashing algorithm which is not support by most hash cracking tools. This \*\* <a href="https://github.com/iamaldi/grafana2hashcat.git" class="markup--anchor markup--p-anchor" data-href="https://github.com/iamaldi/grafana2hashcat.git" rel="noopener" target="_blank">Tool</a> \*\* will convert the grafana hashes into a format hashcat can crack. use a text editor to save the hashes.. put a comma in between them. then run it through grafana2hashcat and it will give you a crackable hash.
+Now we can take these 2 hashes and save them and crack them with hashcat or john whichever you prefer. After a bit of research we found out that grafana uses a special hashing algorithm which is not support by most hash cracking tools. This \*\* [Tool](https://github.com/iamaldi/grafana2hashcat.git) \*\* will convert the grafana hashes into a format hashcat can crack. use a text editor to save the hashes.. put a comma in between them. then run it through grafana2hashcat and it will give you a crackable hash.
 
 ![](https://cdn-images-1.medium.com/max/800/1*Rm4e3V3lb67gw3Qsn5WLxw.png)
 
@@ -392,9 +393,9 @@ bash-5.1# cat /mnt/root/root.txt
 
 > Final Note
 
-3\. Philippians 4:13 (NIV) \
- “I can do all things through Christ who strengthens me.”\
- This verse is seen as a source of inspiration, suggesting strength through reliance on God!
+3\. Philippians 4:13 (NIV) \
+&#x20;“I can do all things through Christ who strengthens me.”\
+&#x20;This verse is seen as a source of inspiration, suggesting strength through reliance on God!
 
 Lessons Learned\
 • Always prepare a clean, controlled environment — dependency issues can derail exploits.\
@@ -403,10 +404,10 @@ Lessons Learned\
 • Credential reuse across services remains one of the most dangerous oversights.\
 • Misconfigured sudo/Docker permissions can be as catastrophic as application flaws.
 
-This lab was challenging but rewarding: it forced you to pivot through multiple layers, adapt tools, and think like a real attacker chaining small wins into a complete takeover. It’s a strong reminder that pentesting success isn’t about a single exploit — it’s about methodical enumeration, persistence, and chaining every clue into a breakthrough. Hope this helps Thanks for reading !
+This lab was challenging but rewarding: it forced you to pivot through multiple layers, adapt tools, and think like a real attacker chaining small wins into a complete takeover. It’s a strong reminder that pentesting success isn’t about a single exploit — it’s about methodical enumeration, persistence, and chaining every clue into a breakthrough. Hope this helps Thanks for reading !
 
-By <a href="https://medium.com/@nicholasmullenski" class="p-author h-card">Nicholas Mullenski</a> on [November 17, 2025](https://medium.com/p/9ab185032975).
+By [Nicholas Mullenski](https://medium.com/@nicholasmullenski) on [November 17, 2025](https://medium.com/p/9ab185032975).
 
-<a href="https://medium.com/@nicholasmullenski/data-htb-machine-walk-through-9ab185032975" class="p-canonical">Canonical link</a>
+[Canonical link](https://medium.com/@nicholasmullenski/data-htb-machine-walk-through-9ab185032975)
 
 Exported from [Medium](https://medium.com) on September 1, 2026.
