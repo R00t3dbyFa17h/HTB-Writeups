@@ -1,6 +1,4 @@
 $schema: https://api.gitbook.com/gitbook-docs.yaml
-version: 1
-
 site:
   title: K70n0s510 Writeups
   structure:
@@ -27,7 +25,6 @@ site:
           content:
             directory: ./machines/medium
             language: en
-
     - type: section
       key: section-other-platforms
       title: Other Platforms
